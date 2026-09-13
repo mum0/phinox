@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX — Journal page stub (Phase: UNIFY-TOPBAR).
+JOURNAL link appears in the topbar for authenticated users only.
+This page will be replaced with real editorial content (blog/lookbook)
+in a future phase.
+{% endcomment %}
+
+{% block title %}PHINOX — Journal{% endblock %}
+
+{% block content %}
+<section class="py-16 sm:py-24 text-center" aria-labelledby="journal-heading">
+  <div class="max-w-2xl mx-auto px-4 space-y-6">
+    <div class="flex items-center justify-center gap-3">
+      <span class="inline-block w-2 h-2 bg-phx-fire" aria-hidden="true"></span>
+      <span class="font-mono text-xs uppercase tracking-widest text-phx-fire">// EDITORIAL DISPATCH</span>
+    </div>
+    <h1 id="journal-heading" class="font-display text-4xl sm:text-5xl font-bold uppercase tracking-tight text-phx-text">
+      JOURNAL
+    </h1>
+    <p class="font-mono text-sm uppercase tracking-widest text-phx-text-dim">
+      COMING SOON // EDITORIAL CONTENT UNDER CONSTRUCTION
+    </p>
+    <p class="font-body text-base text-phx-text-muted max-w-md mx-auto leading-relaxed mt-6">
+      The PHINOX Journal will feature editorial dispatches, architectural
+      lookbooks, and behind-the-scenes production notes from the Alexandria node.
+      Sign up to be notified when the first dispatch drops.
+    </p>
+    <a href="{% url 'pages:contact' %}" class="inline-block bg-phx-fire text-phx-surface-dim font-mono text-xs uppercase tracking-widest font-bold px-8 py-4 hover:bg-phx-fire-dim transition-colors min-h-[48px]">
+      GET NOTIFIED →
+    </a>
+  </div>
+</section>
+{% endblock %}

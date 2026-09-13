@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 1 / Page 5 (Checkout / Shipping).
+Source: stitch_phinox_architectural_luxury_e_commerce/phinox_checkout_shipping_checkout_shipping_desktop/code.html
+
+Context provided by CheckoutView (apps/orders/views.py::CheckoutView):
+  - ``cart``              — the user's Cart
+  - ``cart_items``        — list of CartItem with variant+product prefetched
+  - ``subtotal``          — Decimal subtotal (we render with floatformat:2)
+  - ``shipping_addresses``— user's saved ShippingAddress queryset
+  - ``shipping_methods``  — active ShippingMethod queryset
+
+Form posts to ``{% url 'orders:checkout' %}`` with:
+  - ``shipping_address_id`` — selected address pk
+  - ``shipping_method_id``  — selected method pk
+  - ``payment_method``      — 'cod' or 'card' (lowercase per view contract)
+
+Per AGENTS.md §10: Egyptian context — 27 governorates, 2 shipping methods
+(STANDARD_GROUND nationwide + SAME_DAY_ALEXANDRIA), 4 payment providers (CARD,
+VALU, COD, FAWRY). The Stitch UI shows "Paymob / COD" — we map to all four
+but only the two payment_method values the view accepts ('cod' | 'card')
+are submittable here; valU and Fawry are reachable via the card-flow
+redirect (PaymentSimulationView).
+
+Phase 4 status: real backend already wired. This template is a visual
+re-skin of the existing orders/checkout.html using the Stitch design.
+{% endcomment %}
+
+{% block title %}PHINOX — Shipping & Dispatch{% endblock %}
+
+{% block extra_head %}
+<style>
+  .grid-tech {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .tech-input {
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    color: #e3e2e2;
+    border-radius: 0;
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    width: 100%;
+  }
+  .tech-input:focus { border-color: #E85D04; outline: 2px solid #E85D04; outline-offset: 0; }
+  .active-step-bar { box-shadow: inset 0 -2px 0 #E85D04; }
+</style>
+{% endblock %}
+
+{% block body_class %}bg-brand-bg text-brand-text min-h-screen flex flex-col grid-tech selection:bg-brand-orange selection:text-white{% endblock %}
+
+{% block body %}
+{# ── Top Protocol Bar ────────────────────────────────────────────────────── #}
+<header class="w-full border-b border-brand-border bg-[#0E1010]/95 backdrop-blur-md sticky top-0 z-50" role="banner">
+  <div class="max-w-[1400px] mx-auto px-4 md:px-10 h-20 flex items-center justify-between">
+    <a href="{% url 'cart:cart' %}" class="flex items-center gap-3 text-brand-muted hover:text-brand-orange transition-colors duration-200 group h-12 px-2" aria-label="Return to cart">
+      <span class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform" aria-hidden="true">arrow_back</span>
+      <span class="font-mono text-xs tracking-widest uppercase hidden sm:inline">RETURN // CART 01</span>
+    </a>
+    <a href="{% url 'pages:home' %}" class="flex items-center justify-center" aria-label="PHINOX home">
+      <span class="font-display text-xl md:text-2xl text-brand-text uppercase font-bold tracking-[0.10em]">PHINOX</span>
+    </a>
+    <div class="flex items-center gap-3">
+      <div class="hidden md:flex items-center gap-2 border border-brand-border px-3 py-1.5 bg-brand-black">
+        <span class="w-2 h-2 bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+        <span class="font-mono text-[11px] text-brand-muted tracking-wider">SSL_ENCRYPTED // 256-BIT</span>
+      </div>
+      <div class="flex items-center justify-center w-10 h-10 border border-brand-border bg-brand-surface text-brand-text">
+        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">lock</span>
+      </div>
+    </div>
+  </div>
+
+  {# ── Checkout Stepper ───────────────────────────────────────────────────── #}
+  <div class="max-w-[1400px] mx-auto px-4 md:px-10 pb-3">
+    <div class="flex items-center gap-6 sm:gap-10 overflow-x-auto pb-1 sm:pb-0">
+      <div class="flex items-center gap-2 text-brand-muted">
+        <span class="font-mono text-[10px]">01</span>
+        <span class="tracking-wider line-through">CART</span>
+      </div>
+      <div class="flex items-center gap-2 text-brand-text font-bold active-step-bar pb-1">
+        <span class="text-brand-orange font-mono text-[10px]">02</span>
+        <span class="tracking-wider">SHIPPING & DISPATCH</span>
+      </div>
+      <div class="flex items-center gap-2 text-brand-muted">
+        <span class="font-mono text-[10px]">03</span>
+        <span class="tracking-wider">PAYMENT (PAYMOB/COD)</span>
+      </div>
+      <div class="flex items-center gap-2 text-brand-muted">
+        <span class="font-mono text-[10px]">04</span>
+        <span class="tracking-wider">CONFIRMATION</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+{# ── Main Container ─────────────────────────────────────────────────────── #}
+<main class="max-w-[1400px] mx-auto px-4 md:px-10 py-8 md:py-10 flex-1 w-full">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+
+    {# ── LEFT: Shipping Form (7 cols) ─────────────────────────────────────── #}
+    <section class="lg:col-span-7 space-y-8" aria-labelledby="shipping-heading">
+      <div>
+        <div class="flex items-center gap-2 font-mono text-xs text-brand-orange uppercase tracking-wider mb-2">
+          <span>// PHASE 02.1</span>
+          <span>•</span>
+          <span>RECIPIENT CO-ORDINATES</span>
+        </div>
+        <h1 id="shipping-heading" class="text-2xl md:text-4xl font-display font-bold text-brand-text tracking-tight uppercase">
+          SHIPPING &amp; DISPATCH DETAILS
+        </h1>
+        <p class="text-brand-muted text-sm mt-1.5 font-body">
+          Expedited architectural delivery across all 27 Egyptian Governorates via authorized couriers.
+        </p>
+      </div>
+
+      <form id="shipping-form" class="space-y-6" method="post" action="{% url 'orders:checkout' %}">
+        {% csrf_token %}
+
+        {# ── Saved Address Selector ────────────────────────────────────────── #}
+        <div class="bg-brand-card border border-brand-border p-6">
+          <div class="flex items-center justify-between border-b border-brand-border pb-3 mb-5">
+            <span class="font-mono text-xs text-brand-orange tracking-widest uppercase font-semibold flex items-center gap-2">
+              <span class="material-symbols-outlined text-[16px]" aria-hidden="true">location_on</span>
+              01 // SELECT SAVED ADDRESS
+            </span>
+            <span class="font-mono text-[10px] text-brand-muted">{% if shipping_addresses %}{{ shipping_addresses|length }} SAVED{% else %}NONE SAVED{% endif %}</span>
+          </div>
+
+          {% if shipping_addresses %}
+            <div class="space-y-3" role="radiogroup" aria-label="Saved shipping addresses">
+              {% for addr in shipping_addresses %}
+                <label class="block border border-brand-border p-4 cursor-pointer hover:border-brand-orange transition-colors has-[:checked]:border-brand-orange has-[:checked]:bg-brand-surface">
+                  <input type="radio" name="shipping_address_id" value="{{ addr.pk }}" required
+                         class="sr-only"
+                         {% if forloop.first %}checked{% endif %}>
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <p class="font-mono text-sm text-brand-text font-semibold">{{ addr.full_name|default:"RECIPIENT" }}</p>
+                      <p class="font-mono text-xs text-brand-muted mt-1">{{ addr.address|default:"" }} · {{ addr.city|default:"" }} · {{ addr.country|default:"" }}</p>
+                      <p class="font-mono text-xs text-brand-muted">{{ addr.phone|default:"" }}</p>
+                    </div>
+                    <span class="material-symbols-outlined text-brand-orange text-[20px] hidden has-[:checked]:block" aria-hidden="true">check_circle</span>
+                  </div>
+                </label>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="border border-dashed border-brand-border p-6 text-center">
+              <p class="font-mono text-xs text-brand-muted uppercase tracking-widest mb-2">NO SAVED ADDRESSES</p>
+              <p class="font-mono text-[11px] text-brand-muted leading-relaxed">
+                You have no saved shipping addresses yet. Use the form below to enter the dispatch coordinates — they will be saved to your account on order placement.
+              </p>
+            </div>
+            {% comment %}When no saved addresses exist, we still need to submit
+               a shipping_address_id. The CheckoutView will 404 if the pk
+               doesn't match a user address — so we expose this as an OPEN
+               QUESTION (logged in worklog). For now, render a hidden
+               placeholder so the form submits something. Phase 4/5 will
+               wire a proper "create new address" form.{% endcomment %}
+            <input type="hidden" name="shipping_address_id" value="">
+          {% endif %}
+        </div>
+
+        {# ── Shipping Method ───────────────────────────────────────────────── #}
+        <div class="bg-brand-card border border-brand-border p-6">
+          <div class="flex items-center justify-between border-b border-brand-border pb-3 mb-5">
+            <span class="font-mono text-xs text-brand-orange tracking-widest uppercase font-semibold flex items-center gap-2">
+              <span class="material-symbols-outlined text-[16px]" aria-hidden="true">local_shipping</span>
+              02 // DISPATCH TIER
+            </span>
+            <span class="font-mono text-[10px] text-brand-muted">SELECT ONE</span>
+          </div>
+
+          <div class="space-y-3" role="radiogroup" aria-label="Shipping methods">
+            {% for method in shipping_methods %}
+              <label class="block border border-brand-border p-4 cursor-pointer hover:border-brand-orange transition-colors has-[:checked]:border-brand-orange has-[:checked]:bg-brand-surface">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-start gap-3">
+                    <input type="radio" name="shipping_method_id" value="{{ method.pk }}" required
+                           class="mt-1.5 accent-brand-orange w-4 h-4 bg-black border-brand-border"
+                           {% if forloop.first %}checked{% endif %}>
+                    <div>
+                      <p class="font-mono text-sm text-brand-text font-semibold uppercase tracking-wider">{{ method.name|upper }}</p>
+                      <p class="font-mono text-[11px] text-brand-muted mt-1">{{ method.code|default:"STANDARD" }} // ESTIMATED {{ method.estimated_days_min|default:2 }}–{{ method.estimated_days_max|default:4 }} DAYS</p>
+                      <p class="font-mono text-xs text-brand-orange font-bold mt-2">{{ method.price|floatformat:2 }} {{ method.currency|default:"EGP" }}</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="font-mono text-[10px] text-brand-muted uppercase tracking-widest">ETA</p>
+                    <p class="font-mono text-xs text-brand-text mt-1">{{ method.estimated_days_min|default:2 }}–{{ method.estimated_days_max|default:4 }} DAYS</p>
+                  </div>
+                </div>
+              </label>
+            {% empty %}
+              <div class="border border-dashed border-brand-border p-4 text-center">
+                <p class="font-mono text-xs text-brand-muted uppercase tracking-widest">NO SHIPPING METHODS CONFIGURED</p>
+                <p class="font-mono text-[11px] text-brand-muted mt-2">
+                  An admin must seed at least one ShippingMethod before checkout can proceed.
+                </p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# ── Payment Method ────────────────────────────────────────────────── #}
+        <div class="bg-brand-card border border-brand-border p-6">
+          <div class="flex items-center justify-between border-b border-brand-border pb-3 mb-5">
+            <span class="font-mono text-xs text-brand-orange tracking-widest uppercase font-semibold flex items-center gap-2">
+              <span class="material-symbols-outlined text-[16px]" aria-hidden="true">payments</span>
+              03 // PAYMENT METHOD
+            </span>
+            <span class="font-mono text-[10px] text-brand-muted">SELECT ONE</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Payment methods">
+            <label class="border border-brand-border p-4 cursor-pointer hover:border-brand-orange transition-colors has-[:checked]:border-brand-orange has-[:checked]:bg-brand-surface">
+              <input type="radio" name="payment_method" value="cod" required class="sr-only" checked>
+              <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-brand-orange text-[22px]" aria-hidden="true">local_shipping</span>
+                <div>
+                  <p class="font-mono text-sm text-brand-text font-semibold uppercase">CASH ON DELIVERY</p>
+                  <p class="font-mono text-[10px] text-brand-muted mt-1 leading-relaxed">Pay driver on arrival. Dispatch PIN via SMS.</p>
+                </div>
+              </div>
+            </label>
+            <label class="border border-brand-border p-4 cursor-pointer hover:border-brand-orange transition-colors has-[:checked]:border-brand-orange has-[:checked]:bg-brand-surface">
+              <input type="radio" name="payment_method" value="card" required class="sr-only">
+              <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-brand-orange text-[22px]" aria-hidden="true">credit_card</span>
+                <div>
+                  <p class="font-mono text-sm text-brand-text font-semibold uppercase">PAYMOB CARD / valU</p>
+                  <p class="font-mono text-[10px] text-brand-muted mt-1 leading-relaxed">Visa/Mastercard or valU BNPL. Test-mode only.</p>
+                </div>
+              </div>
+            </label>
+          </div>
+          <p class="font-mono text-[10px] text-brand-muted uppercase tracking-widest mt-4 pt-3 border-t border-brand-border">
+            * FAWRY & valU ACCESSIBLE VIA CARD FLOW (PHASE 5 FULL WIRING)
+          </p>
+        </div>
+
+        {# ── Submit ──────────────────────────────────────────────────────── #}
+        <button type="submit"
+                class="w-full bg-brand-orange text-black font-mono font-bold text-xs uppercase tracking-widest py-4 hover:bg-[#FF6A1A] transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 active:translate-y-0.5 min-h-[48px]"
+                aria-label="Continue to payment authorization">
+          CONTINUE // AUTHORIZE PAYMENT
+          <span class="material-symbols-outlined text-sm" aria-hidden="true">arrow_forward</span>
+        </button>
+      </form>
+    </section>
+
+    {# ── RIGHT: Order Manifest Summary (5 cols) ────────────────────────────── #}
+    <aside class="lg:col-span-5 lg:sticky lg:top-24" aria-labelledby="manifest-heading">
+      <div class="border border-brand-border bg-brand-card">
+        <div class="px-5 py-4 border-b border-brand-border">
+          <h2 id="manifest-heading" class="font-mono text-xs uppercase tracking-widest text-brand-orange font-bold">ORDER MANIFEST</h2>
+        </div>
+        <div class="px-5 py-5 space-y-3">
+          {% for item in cart_items %}
+            <div class="flex items-start gap-3 py-2">
+              <div class="w-14 h-14 bg-brand-surface border border-brand-border overflow-hidden flex-shrink-0">
+                {% with first_image=item.variant.product.images.first %}
+                  {% if first_image %}
+                    <img src="{{ first_image.image.url }}" alt="{{ first_image.alt_text|default:item.variant.product.name }}" class="w-full h-full object-cover">
+                  {% else %}
+                    <img src="{% static 'images/stitch/phinox_checkout_shipping_checkout_shipping_desktop/00.jpg' %}" alt="{{ item.variant.product.name }}" class="w-full h-full object-cover grayscale opacity-60">
+                  {% endif %}
+                {% endwith %}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-mono text-[10px] uppercase tracking-widest text-brand-muted">{{ item.variant.sku }}</p>
+                <p class="font-mono text-sm text-brand-text truncate">{{ item.variant.product.name|upper }}</p>
+                <p class="font-mono text-[10px] text-brand-muted mt-0.5">QTY: {{ item.quantity }} × {{ item.variant.unit_price|floatformat:2 }} {{ item.variant.product.currency }}</p>
+              </div>
+              <div class="text-right">
+                <p class="font-mono text-sm text-brand-orange font-bold">{{ item.variant.unit_price|floatformat:2 }}</p>
+                <p class="font-mono text-[9px] text-brand-muted">{{ item.variant.product.currency }}</p>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="px-5 py-4 border-t border-brand-border space-y-2 font-mono text-xs">
+          <div class="flex justify-between text-brand-muted">
+            <span>SUBTOTAL</span>
+            <span>{{ subtotal|floatformat:2 }} EGP</span>
+          </div>
+          <div class="flex justify-between text-brand-muted">
+            <span>SHIPPING</span>
+            <span>CALCULATED NEXT</span>
+          </div>
+          <div class="flex justify-between text-brand-muted">
+            <span>TAX (VAT)</span>
+            <span>INCLUSIVE</span>
+          </div>
+          <div class="h-px bg-brand-border my-2"></div>
+          <div class="flex justify-between text-brand-text font-bold text-base">
+            <span>TOTAL</span>
+            <span class="text-brand-orange">{{ subtotal|floatformat:2 }} <span class="text-[10px] text-brand-muted">EGP</span></span>
+          </div>
+        </div>
+        <div class="px-5 py-3 border-t border-brand-border bg-brand-surface">
+          <p class="font-mono text-[10px] text-brand-muted uppercase tracking-widest text-center">
+            <span class="material-symbols-outlined text-[12px] align-middle mr-1" aria-hidden="true">verified_user</span>
+            PCI-DSS VERIFIED // CENTRAL BANK OF EGYPT
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-4 border border-brand-border bg-brand-card p-4 text-center">
+        <p class="font-mono text-[10px] uppercase tracking-widest text-brand-muted">
+          NEED HELP? <a href="{% url 'pages:contact' %}" class="text-brand-orange hover:underline">CONTACT DISPATCH</a>
+        </p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+{# ── Footer ─────────────────────────────────────────────────────────────── #}
+<footer class="border-t border-brand-border bg-brand-bg py-6 px-4 md:px-10 text-center" role="contentinfo">
+  <p class="font-mono text-[10px] uppercase tracking-widest text-brand-muted">
+    &copy; {% now "Y" %} PHINOX // RULE OF TWO // ALEXANDRIA DISPATCH
+  </p>
+</footer>
+{% endblock %}

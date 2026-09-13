@@ -1,0 +1,190 @@
+# PHINOX production docker-compose — Phase 6 STITCH-INTEGRATION hardening.
+#
+# Per دستور §11:
+#   - Services: db, redis, web, celery_worker, celery_beat, nginx.
+#   - Restart policies: unless-stopped (auto-restart on crash, but not on
+#     explicit ``docker stop``).
+#   - Healthchecks for every service (used by ``depends_on: condition: service_healthy``
+#     so dependent services don't start before their deps are ready).
+#   - Named volumes for postgres data + redis data + media (persistent).
+#   - Staticfiles served by WhiteNoise (no shared volume needed for /static/).
+#
+# Per دستور §5 + §7:
+#   - Secrets via .env file (gitignored). Never committed.
+#   - The web/celery services use the same image (built from docker/Dockerfile);
+#     only their CMD differs.
+#   - nginx is included for the Hetzner single-VPS deploy pattern (port 80
+#     → reverse proxy to web:8000). For Hetzner+Kubernetes, the Kubernetes
+#     Ingress replaces this nginx service.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-phinox}
+      POSTGRES_USER: ${POSTGRES_USER:-phinox}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-phinox}
+    volumes:
+      - phinox_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-phinox} -d ${POSTGRES_DB:-phinox}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - phinox_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    # PHASE-D §D7: use the GHCR-pushed image instead of a locally-built one.
+    # The deploy workflow pushes to ghcr.io/<owner>/<repo>:latest on every
+    # main-branch merge. The ``build:`` block stays for local dev (``docker
+    # compose build``); in prod, ``docker compose pull`` fetches the GHCR image.
+    # Replace ``<owner>/<repo>`` with the actual GitHub owner/repo (e.g.
+    # ``z-ai/phinox``).
+    image: ghcr.io/${GHCR_OWNER:-z-ai}/${GHCR_REPO:-phinox}:latest
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      # PHASE-D §D2: only the ``web`` service runs migrations. Worker + beat
+      # skip (RUN_MIGRATIONS defaults to 0).
+      RUN_MIGRATIONS: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    expose:
+      - "8000"  # only reachable from within the compose network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  celery_worker:
+    # PHASE-D §D7: reuse the same GHCR image (no ``build:`` block — the
+    # image is pulled from GHCR by the ``web`` service's ``image:`` directive).
+    image: ghcr.io/${GHCR_OWNER:-z-ai}/${GHCR_REPO:-phinox}:latest
+    restart: unless-stopped
+    # PHASE-FINAL §2: use CELERY_ROLE env var instead of ``command:``.
+    # The entrypoint.sh reads CELERY_ROLE + branches:
+    #   worker  → exec celery -A config worker -l info
+    #   beat    → exec celery -A config beat -l info
+    #   ""     → exec the Dockerfile CMD (gunicorn)  [default — not used here]
+    environment:
+      CELERY_ROLE: worker
+      RUN_MIGRATIONS: "0"  # only the ``web`` service runs migrations
+    env_file:
+      - ../.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # Celery doesn't have a built-in /health/, but ``inspect ping`` is a
+      # reasonable proxy: returns "pong" if a worker is alive + responsive.
+      test: ["CMD-SHELL", "celery -A config inspect ping -d celery@$$HOSTNAME || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  celery_beat:
+    image: ghcr.io/${GHCR_OWNER:-z-ai}/${GHCR_REPO:-phinox}:latest
+    restart: unless-stopped
+    # PHASE-FINAL §2: CELERY_ROLE=beat → entrypoint execs
+    # ``celery -A config beat -l info``.
+    environment:
+      CELERY_ROLE: beat
+      RUN_MIGRATIONS: "0"
+    env_file:
+      - ../.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - phinox_certs:/etc/nginx/certs:ro
+      - certbot_webroot:/var/www/certbot:ro  # PHASE-D §D5: certbot HTTP-01 challenge path
+    depends_on:
+      web:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "nginx -t && curl -fsS http://localhost/health/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # PHASE-D §D5: certbot sidecar for TLS cert renewal.
+  # Provisions the initial cert via the HTTP-01 challenge (nginx serves
+  # /.well-known/acme-challenge/ from the shared ``certbot_webroot`` volume),
+  # then renews every 60 days. The renewal loop is a ``while true; sleep 12h``.
+  # To provision the initial cert, run:
+  #   docker compose run --rm certbot certonly --webroot -w /var/www/certbot \
+  #     -d phinox.example.com --email ops@phinox.example.com --agree-tos --no-eff-email
+  certbot:
+    image: certbot/certbot:latest
+    restart: unless-stopped
+    volumes:
+      - phinox_certs:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    entrypoint: |
+      sh -c '
+        # If a cert exists, just run the renewal loop. Otherwise, sleep
+        # until the operator manually provisions the cert (see comment above).
+        if [ -d /etc/letsencrypt/live ]; then
+          echo "[certbot] Certs present — starting renewal loop.";
+          # NOTE: certbot's ``--deploy-hook`` runs after each successful
+          # renewal. We can't ``docker kill -s HUP nginx`` from inside
+          # the certbot container (no Docker socket). Operators should
+          # either: (a) run ``docker compose exec nginx nginx -s reload``
+          # manually after each renewal, or (b) mount the Docker socket
+          # into the certbot container + use ``--deploy-hook "docker kill
+          # -s HUP nginx"`` (more complex setup, not the default).
+          while true; do
+            certbot renew --quiet --webroot -w /var/www/certbot;
+            sleep 12h;
+          done
+        else
+          echo "[certbot] No certs yet. Provision with:";
+          echo "  docker compose run --rm certbot certonly --webroot -w /var/www/certbot -d <domain> --email <email> --agree-tos --no-eff-email";
+          # Keep the container alive so docker compose doesn't restart-loop it.
+          tail -f /dev/null;
+        fi
+      '
+    depends_on:
+      nginx:
+        condition: service_started
+
+volumes:
+  phinox_pgdata:
+  phinox_redis:
+  phinox_certs:  # mount TLS certs here (or use certbot/Let's Encrypt sidecar)
+  certbot_webroot:  # PHASE-D §D5: shared ACME HTTP-01 challenge path

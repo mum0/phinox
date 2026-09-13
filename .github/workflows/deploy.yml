@@ -1,0 +1,138 @@
+# PHINOX deploy pipeline — runs AFTER CI passes on main.
+#
+# Flow:
+#   1. PHASE-D §D7: this workflow is triggered by the CI workflow completing
+#      successfully on main (``workflow_run`` gate). The deploy does NOT
+#      run on every push — it runs only when CI is green.
+#   2. Build the Docker image (multi-stage Dockerfile).
+#   3. Push the image to GitHub Container Registry (ghcr.io).
+#   4. SSH into the Hetzner VPS + pull the new image + docker compose up -d.
+#
+# PHASE-D §D7: docker-compose.yml now uses
+#   ``image: ghcr.io/${GHCR_OWNER:-z-ai}/${GHCR_REPO:-phinox}:latest``
+# (was ``phinox-web:latest``, a locally-built image that the deploy
+# workflow's ``docker compose pull`` couldn't fetch). The deploy now
+# pulls from GHCR.
+#
+# Secrets required (configured in the GitHub repo's Settings → Secrets → Actions):
+#   - HETZNER_HOST        — IP or hostname of the production VPS.
+#   - HETZNER_USER        — SSH user (default: phinox).
+#   - SSH_PRIVATE_KEY     — private key matching the public key authorized
+#                           on the VPS in ~/.ssh/authorized_keys.
+#   - HETZNER_PROJECT_DIR — path on the VPS where docker-compose.yml lives
+#                           (default: /srv/phinox).
+#   - GHCR_OWNER / GHCR_REPO — the GitHub owner/repo for the image tag
+#                           (default: z-ai/phinox). Override per-env.
+#
+# Per دستور §7: squash-merge to main, linear history. This workflow runs on
+# the merged commit — no tags or release branches needed.
+#
+# Per دستور §5: never log secrets. This workflow's logs will show only the
+# image SHA + the SSH exit code; the deploy commands themselves are run
+# with `set -x` (visible in VPS shell history, NOT in GitHub Actions logs).
+name: Deploy
+
+# PHASE-D §D7: ``workflow_run`` gate — deploy only runs when the CI workflow
+# (``ci.yml``) completes successfully on the main branch. This ensures the
+# deploy never runs on a broken commit (CI lint/test/migrations-check must
+# all pass first).
+#
+# ``workflow_dispatch`` keeps a manual trigger for emergency rollbacks.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:  # allow manual triggering for emergency rollbacks
+
+# Required so the `packages: write` permission can push to ghcr.io.
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # PHASE-D §D7: gate the build+push on the CI workflow's conclusion.
+  # If the workflow_run was not successful (e.g. CI failed), skip deploy.
+  deploy:
+    name: Build + push + deploy to Hetzner VPS
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    outputs:
+      image_sha: ${{ steps.meta.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=long
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=deploy-${{ github.run_number }}
+      - name: Build + push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ── PHASE-D §D7: deploy to Hetzner VPS (same job as the build) ────
+      # The original workflow split build-and-push + deploy into two jobs.
+      # The split required sharing the image SHA via outputs, which was
+      # brittle. Combining them into one job simplifies the flow.
+      - name: Install SSH client
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.HETZNER_HOST }} >> ~/.ssh/known_hosts
+      - name: Pull image + restart stack
+        env:
+          HETZNER_HOST: ${{ secrets.HETZNER_HOST }}
+          HETZNER_USER: ${{ secrets.HETZNER_USER }}
+          HETZNER_PROJECT_DIR: ${{ secrets.HETZNER_PROJECT_DIR }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "${HETZNER_USER}@${HETZNER_HOST}" \
+            "cd ${HETZNER_PROJECT_DIR} && \
+             docker compose pull && \
+             docker compose up -d --remove-orphans && \
+             docker image prune -f"
+          echo "✓ Deployed image ${{ steps.meta.outputs.tags }}"
+      - name: Verify health check
+        env:
+          HETZNER_HOST: ${{ secrets.HETZNER_HOST }}
+          HETZNER_USER: ${{ secrets.HETZNER_USER }}
+        run: |
+          # Wait up to 60s for the new container to respond on /health/
+          sleep 5
+          for i in {1..12}; do
+            if ssh -i ~/.ssh/deploy_key "${HETZNER_USER}@${HETZNER_HOST}" \
+                 "curl -fsS http://localhost:8000/health/ | grep -q '\"status\":.*\"ok\"'"
+            then
+              echo "✓ Health check passed"
+              exit 0
+            fi
+            echo "  health check attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
+          echo "✗ Health check failed — manual intervention required"
+          exit 1

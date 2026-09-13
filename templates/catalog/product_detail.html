@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 3 / Page 6 (PDP refresh).
+Source: stitch_phinox_architectural_luxury_e_commerce/phinox_core_hoodie_desktop/code.html
+
+Replaces the existing catalog/product_detail.html (which used legacy
+phx-* tokens) with the Stitch "Core Hoodie" PDP design, re-skinned
+with the brand system tokens (surface-* / primary-* / outline-*).
+
+Context provided by ProductDetailView (apps/catalog/views.py):
+  - ``product``         — the Product instance (with variants + images prefetched)
+  - ``variants``        — list of active ProductVariant (ordered by id)
+  - ``primary_image``   — the first ProductImage by position (or None)
+  - ``related_products`` — up to 8 active products in the same category
+
+Per دستور §6: ProductVariant.unit_price is a cached_property = base_price + price_extra.
+Per دستور §10: EGP currency, 4 payment rails. Add-to-cart form POSTs to
+{% url 'cart:add_to_cart' %} with variant_id + quantity. Wishlist add form
+POSTs to {% url 'wishlist:add' %} with product_id (+ optional variant_id).
+{% endcomment %}
+
+{% block title %}PHINOX — {{ product.name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .lock-stitch-hover { transition: all 200ms ease; }
+  .lock-stitch-hover:hover {
+    background-color: rgba(232, 93, 4, 0.05);
+    box-shadow: inset 4px 0 0 #E85D04;
+  }
+  .stitch-section { opacity: 0; transition: opacity 600ms ease; }
+  .stitch-section.is-visible { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .stitch-section { opacity: 1; } }
+</style>
+{% endblock %}
+
+{% block body_class %}font-body-md text-on-surface antialiased{% endblock %}
+
+{% block body %}
+{# ── Top Bar (Stitch bespoke) ────────────────────────────────────────────── #}
+<header class="fixed top-0 w-full z-50 bg-background/90 backdrop-blur-md flex justify-between items-center px-margin-mobile md:px-margin-desktop h-20 border-b border-outline-variant" role="banner">
+  <div class="flex items-center gap-gutter">
+    <a href="{% url 'catalog:product_list' %}" class="text-on-surface active:scale-90 transition-transform flex items-center gap-2" aria-label="Back to shop">
+      <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    </a>
+    <nav class="hidden md:flex gap-8 items-center" aria-label="Product navigation">
+      <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors" href="{% url 'pages:home' %}">HOME</a>
+      <a aria-current="page" class="font-label-technical text-label-technical text-primary border-b-2 border-primary" href="{% url 'catalog:product_list' %}">SHOP</a>
+      <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors" href="{% url 'catalog:collection_list' %}">COLLECTIONS</a>
+    </nav>
+  </div>
+  <div class="absolute left-1/2 -translate-x-1/2">
+    <a href="{% url 'pages:home' %}" class="font-label-technical text-label-technical tracking-widest text-on-surface uppercase font-bold" aria-label="PHINOX home">
+      PHINOX
+    </a>
+  </div>
+  <div class="flex items-center gap-gutter">
+    <span class="hidden md:block font-label-technical text-label-technical text-on-surface-variant">V.2.4 ARCHIVE</span>
+    <a href="{% url 'cart:cart' %}" class="text-on-surface active:scale-90 transition-transform flex items-center min-h-[48px]" aria-label="Shopping cart">
+      <span class="material-symbols-outlined" aria-hidden="true">shopping_bag</span>
+    </a>
+  </div>
+</header>
+
+<main class="pt-20">
+  {# ── Hero / Configuration Panel ──────────────────────────────────────────── #}
+  <section class="flex flex-col md:flex-row w-full min-h-[calc(100vh-80px)] border-b border-outline-variant">
+
+    {# ── LEFT: Cinematic image canvas ─────────────────────────────────────── #}
+    <div class="md:w-3/5 relative h-[70vh] md:h-auto border-r border-outline-variant overflow-hidden group">
+      <div class="absolute top-margin-mobile left-margin-mobile z-10 flex flex-col gap-2">
+        <span class="bg-primary text-on-primary font-label-technical text-[10px] px-2 py-1 tracking-widest">
+          PRODUCT ID: {{ product.business_id }}
+        </span>
+        {% if product.status == 'active' %}
+        <span class="bg-white/10 backdrop-blur-sm text-on-surface font-label-technical text-[10px] px-2 py-1 tracking-widest">
+          SYSTEM READY
+        </span>
+        {% else %}
+        <span class="bg-surface-container-high text-on-surface-variant font-label-technical text-[10px] px-2 py-1 tracking-widest">
+          {{ product.status|upper }}
+        </span>
+        {% endif %}
+      </div>
+
+      {% if primary_image %}
+        <img src="{{ primary_image.image.url }}"
+             alt="{{ primary_image.alt_text|default:product.name }}"
+             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+             loading="lazy">
+      {% else %}
+        <img src="{% static 'images/stitch/phinox_core_hoodie_desktop/00.png' %}"
+             alt="{{ product.name }}"
+             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 grayscale opacity-60"
+             loading="lazy">
+      {% endif %}
+
+      {# Gallery nav dots (visual only — for now just decorative since we only ship 1 image per product via seed) #}
+      <div class="absolute bottom-margin-mobile right-margin-mobile flex flex-col gap-2" aria-hidden="true">
+        <div class="w-1 h-8 bg-primary"></div>
+        <div class="w-1 h-4 bg-white/20"></div>
+        <div class="w-1 h-4 bg-white/20"></div>
+      </div>
+    </div>
+
+    {# ── RIGHT: Configuration panel ────────────────────────────────────────── #}
+    <div class="md:w-2/5 p-margin-mobile md:p-12 flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-start mb-8">
+          <div>
+            <p class="font-label-technical text-label-technical text-primary mb-2">
+              SYSTEM CLASSIFICATION: {{ product.category.name|upper }}
+            </p>
+            <h1 class="font-display-xl text-display-xl uppercase leading-tight">{{ product.name }}</h1>
+          </div>
+          <p class="font-headline-lg text-headline-lg text-on-surface whitespace-nowrap">
+            {{ product.base_price|floatformat:2 }} <span class="text-[10px] text-on-surface-variant">{{ product.currency }}</span>
+          </p>
+        </div>
+
+        {% if product.description %}
+        <p class="font-body-md text-on-surface-variant max-w-md mb-12 leading-relaxed">
+          {{ product.description }}
+        </p>
+        {% else %}
+        <p class="font-body-md text-on-surface-variant max-w-md mb-12 leading-relaxed">
+          Designed for the convergence of high-performance technical gear and avant-garde luxury. Engineered under direct Alexandria command with monolithic fit, reinforced seams, and a heavy-duty matte finish for extreme durability in urban environments.
+        </p>
+        {% endif %}
+
+        {# ── Variant selector ──────────────────────────────────────────── #}
+        <div class="space-y-8">
+          {% if variants %}
+            <form method="post" action="{% url 'cart:add_to_cart' %}" id="pdp-add-to-cart-form">
+              {% csrf_token %}
+
+              {# ── Colorway swatches (if variants have colors) ───────────── #}
+              {% if variants.0.color %}
+              <div>
+                <span class="font-label-technical text-label-technical opacity-50 block mb-2">COLORWAY: <span id="selected-color-name" class="text-on-surface font-bold">—</span></span>
+                <div class="flex gap-4 flex-wrap" id="color-swatches">
+                  {% for variant in variants %}
+                    <label class="cursor-pointer color-swatch" title="{{ variant.color.name }}" data-variant-id="{{ variant.pk }}" data-color-id="{{ variant.color_id }}" data-color-name="{{ variant.color.name }}" data-variant-price="{{ variant.unit_price|floatformat:2 }}" data-variant-sku="{{ variant.sku }}" data-variant-stock="{{ variant.inventory_records.first.quantity_available|default:0 }}">
+                      <input type="radio" name="color_variant" value="{{ variant.pk }}" class="sr-only peer color-radio" data-color-id="{{ variant.color_id }}">
+                      <div class="w-10 h-10 border-2 border-outline-variant peer-checked:border-primary transition-colors peer-checked:bg-surface-container-high"
+                           style="background-color: {{ variant.color.hex_code|default:'#1a1c1c' }};"
+                           aria-label="{{ variant.color.name }}"></div>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+
+              {# ── Size selector (if variants have sizes) ────────────────── #}
+              {% if variants.0.size %}
+              <div>
+                <div class="flex justify-between mb-4">
+                  <span class="font-label-technical text-label-technical opacity-50">SIZE SELECTOR: <span id="selected-size-name" class="text-on-surface font-bold">—</span></span>
+                  <a href="{% url 'pages:faq' %}#sizing" class="font-label-technical text-label-technical text-primary underline">SIZE GUIDE</a>
+                </div>
+                <div class="grid grid-cols-4 gap-2" id="size-buttons">
+                  {% for variant in variants %}
+                    <label class="cursor-pointer size-btn" data-variant-id="{{ variant.pk }}" data-size-id="{{ variant.size_id }}" data-size-name="{{ variant.size.name }}">
+                      <input type="radio" name="size_variant" value="{{ variant.pk }}" class="sr-only peer size-radio" data-size-id="{{ variant.size_id }}">
+                      <div class="border border-outline-variant py-4 font-label-technical text-center hover:bg-on-surface hover:text-background transition-all peer-checked:border-primary peer-checked:bg-surface-container-high">
+                        {{ variant.size.name }}
+                      </div>
+                    </label>
+                  {% endfor %}
+                </div>
+                <p id="stock-status" class="font-label-technical text-label-technical mt-2 hidden"></p>
+              </div>
+              {% endif %}
+
+              {# ── Hidden variant_id field — populated by JS when both selected #}
+              <input type="hidden" name="variant_id" id="selected-variant-id" value="">
+              <input type="hidden" name="quantity" value="1">
+
+              {# ── Price display (updates with variant selection) ──────────── #}
+              <div class="flex items-center justify-between">
+                <p class="font-headline-lg text-headline-lg text-on-surface whitespace-nowrap">
+                  <span id="variant-price">{{ product.base_price|floatformat:2 }}</span>
+                  <span class="text-[10px] text-on-surface-variant">{{ product.currency }}</span>
+                </p>
+              </div>
+
+              {# ── Action buttons ───────────────────────────────────────── #}
+              <div class="mt-12 space-y-4">
+                <button type="submit" id="add-to-cart-btn"
+                        class="w-full bg-primary text-on-primary font-headline-lg-mobile py-6 flex items-center justify-center gap-4 active:scale-95 transition-transform min-h-[48px] opacity-50 cursor-not-allowed"
+                        disabled>
+                  <span id="add-to-cart-text">SELECT COLOR & SIZE</span>
+                  <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                </button>
+              </div>
+            </form>
+
+            {# ── Add to wishlist (separate form, links product not variant) ─ #}
+            <form method="post" action="{% url 'wishlist:add' %}" class="mt-4">
+              {% csrf_token %}
+              <input type="hidden" name="product_id" value="{{ product.pk }}">
+              <button type="submit"
+                      class="w-full border border-on-surface text-on-surface font-label-technical py-4 hover:bg-on-surface/10 transition-colors uppercase min-h-[48px] flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">favorite</span>
+                ADD TO WISHLIST
+              </button>
+            </form>
+          {% else %}
+            <p class="font-label-technical text-label-technical text-error uppercase tracking-widest">
+              NO ACTIVE VARIANTS // OUT OF STOCK
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ── Technical Specifications Bento ─────────────────────────────────────── #}
+  <section class="p-margin-mobile md:px-margin-desktop py-section-gap grid grid-cols-1 md:grid-cols-12 gap-gutter stitch-section" aria-labelledby="specs-heading">
+    <div class="md:col-span-12 mb-12">
+      <div class="flex items-center gap-gutter mb-4">
+        <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+        <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">// TECHNICAL SPECIFICATIONS</span>
+      </div>
+      <h2 id="specs-heading" class="font-display-xl text-[40px] md:text-display-xl uppercase tracking-tighter">
+        Technical<br>Specifications
+      </h2>
+    </div>
+
+    <article class="md:col-span-4 border border-outline-variant p-8 flex flex-col justify-between lock-stitch-hover min-h-[256px]">
+      <span class="material-symbols-outlined text-primary text-4xl" aria-hidden="true">inventory_2</span>
+      <div>
+        <h3 class="font-label-technical text-label-technical text-primary mb-2">MATERIAL COMPOSITION</h3>
+        <p class="font-body-md text-on-surface leading-relaxed">
+          500GSM Heavyweight Technical French Terry. Treated with a proprietary DWR matte coating for wind and water resistance. Engineered for extreme durability in urban environments.
+        </p>
+      </div>
+    </article>
+
+    <article class="md:col-span-4 border border-outline-variant p-8 flex flex-col justify-between lock-stitch-hover min-h-[256px]">
+      <span class="material-symbols-outlined text-primary text-4xl" aria-hidden="true">straighten</span>
+      <div>
+        <h3 class="font-label-technical text-label-technical text-primary mb-2">ARCHITECTURAL FIT</h3>
+        <p class="font-body-md text-on-surface leading-relaxed">
+          Oversized boxy silhouette with drop shoulders. Articulated elbow panels for enhanced mobility and shape retention. Designed to layer.
+        </p>
+      </div>
+    </article>
+
+    <article class="md:col-span-4 border border-outline-variant p-8 flex flex-col justify-between lock-stitch-hover min-h-[256px]">
+      <span class="material-symbols-outlined text-primary text-4xl" aria-hidden="true">wash</span>
+      <div>
+        <h3 class="font-label-technical text-label-technical text-primary mb-2">SYSTEM CARE</h3>
+        <p class="font-body-md text-on-surface leading-relaxed">
+          Machine wash cold inside out. Hang dry only to preserve matte finish and structural integrity. Do not dry clean. Iron on low if needed.
+        </p>
+      </div>
+    </article>
+
+    <article class="md:col-span-8 border border-outline-variant p-8 flex items-center justify-center bg-[#080808] relative overflow-hidden min-h-[384px] group">
+      <div class="absolute inset-0 opacity-20" aria-hidden="true">
+        <div class="w-full h-full" style="background-image: radial-gradient(circle, rgba(232, 93, 4, 0.15) 1px, transparent 1px); background-size: 24px 24px;"></div>
+      </div>
+      <div class="z-10 text-center">
+        <span class="font-label-technical text-label-technical opacity-50 block mb-4 tracking-[0.3em]">MANUFACTURED IN ALEXANDRIA NODE // DISTRICT 02</span>
+        <p class="font-display-xl text-4xl md:text-6xl uppercase tracking-tighter">Precision engineered for the reborn.</p>
+      </div>
+    </article>
+
+    <article class="md:col-span-4 border border-outline-variant p-0 relative overflow-hidden min-h-[384px]">
+      <div class="w-full h-full bg-cover bg-center grayscale contrast-125"
+           style="background-image: url('{% static 'images/stitch/phinox_core_hoodie_desktop/01.jpg' %}');"
+           aria-label="Macro detail of {{ product.name }} fabric"></div>
+    </article>
+  </section>
+
+  {# ── Payment Rails ──────────────────────────────────────────────────────── #}
+  <section class="px-margin-mobile md:px-margin-desktop py-12 bg-surface-container-low stitch-section" aria-labelledby="payment-heading">
+    <div class="max-w-3xl mx-auto">
+      <h2 id="payment-heading" class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight mb-6">
+        PAYMENT &amp; DISPATCH
+      </h2>
+      <p class="font-body-md text-on-surface-variant mb-6">
+        Four rails per دستور §10 — choose your method at checkout:
+      </p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="border border-outline-variant bg-surface-container-lowest p-4 text-center">
+          <span class="material-symbols-outlined text-primary text-[28px]" aria-hidden="true">credit_card</span>
+          <p class="font-label-technical text-label-technical text-on-surface uppercase mt-2">CARD</p>
+          <p class="font-label-sm text-label-sm text-on-surface-variant mt-1">PAYMOB</p>
+        </div>
+        <div class="border border-outline-variant bg-surface-container-lowest p-4 text-center">
+          <span class="material-symbols-outlined text-primary text-[28px]" aria-hidden="true">calendar_month</span>
+          <p class="font-label-technical text-label-technical text-on-surface uppercase mt-2">valU</p>
+          <p class="font-label-sm text-label-sm text-on-surface-variant mt-1">BNPL</p>
+        </div>
+        <div class="border border-outline-variant bg-surface-container-lowest p-4 text-center">
+          <span class="material-symbols-outlined text-primary text-[28px]" aria-hidden="true">local_shipping</span>
+          <p class="font-label-technical text-label-technical text-on-surface uppercase mt-2">COD</p>
+          <p class="font-label-sm text-label-sm text-on-surface-variant mt-1">CASH</p>
+        </div>
+        <div class="border border-outline-variant bg-surface-container-lowest p-4 text-center">
+          <span class="material-symbols-outlined text-primary text-[28px]" aria-hidden="true">storefront</span>
+          <p class="font-label-technical text-label-technical text-on-surface uppercase mt-2">FAWRY</p>
+          <p class="font-label-sm text-label-sm text-on-surface-variant mt-1">FAWRYPAY</p>
+        </div>
+      </div>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mt-6">
+        14-DAY ARCHITECTURAL GUARANTEE // ALL 27 GOVERNORATES // SEE <a href="{% url 'pages:returns' %}" class="text-primary underline">RETURNS</a>
+      </p>
+    </div>
+  </section>
+
+  {# ── Related Products ────────────────────────────────────────────────────── #}
+  {% if related_products %}
+  <section class="px-margin-mobile md:px-margin-desktop py-section-gap stitch-section" aria-labelledby="related-heading">
+    <div class="flex items-center gap-gutter mb-12">
+      <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+      <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">// RELATED ARCHIVE</span>
+    </div>
+    <h2 id="related-heading" class="font-display-xl text-[40px] md:text-display-xl uppercase tracking-tighter mb-12">
+      Related<br>Products
+    </h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-gutter">
+      {% for related in related_products %}
+        <a href="{% url 'catalog:product_detail' slug=related.slug %}" class="group block">
+          <div class="aspect-square bg-surface-container overflow-hidden mb-3">
+            {% with first_image=related.images.first %}
+              {% if first_image %}
+                <img src="{{ first_image.image.url }}"
+                     alt="{{ first_image.alt_text|default:related.name }}"
+                     loading="lazy"
+                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+              {% else %}
+                <img src="{% static 'images/stitch/phinox_core_hoodie_desktop/02.jpg' %}"
+                     alt="{{ related.name }}"
+                     loading="lazy"
+                     class="w-full h-full object-cover grayscale opacity-60">
+              {% endif %}
+            {% endwith %}
+          </div>
+          <p class="font-label-technical text-label-technical text-on-surface-variant uppercase">{{ related.business_id }}</p>
+          <p class="font-label-technical text-on-surface mt-1 group-hover:text-primary transition-colors uppercase">{{ related.name }}</p>
+          <p class="font-label-technical text-primary mt-1">{{ related.base_price|floatformat:2 }} {{ related.currency }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# ── Footer ────────────────────────────────────────────────────────── #}
+  <footer class="w-full py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-low border-t border-outline-variant flex flex-col md:flex-row justify-between items-start gap-gutter" role="contentinfo">
+    <div class="space-y-6">
+      <h3 class="font-display-xl text-[40px] text-on-surface uppercase font-black">PHINOX</h3>
+      <p class="font-label-technical text-label-technical text-on-surface-variant max-w-xs">
+        Architectural technical wear. Designed with discipline. Built for the convergence.
+      </p>
+    </div>
+    <div class="mt-16 md:mt-0 w-full flex flex-col gap-4">
+      <div class="h-[1px] w-full bg-outline-variant"></div>
+      <p class="font-label-technical text-label-technical text-on-surface-variant uppercase">© {% now "Y" %} PHINOX. RULE OF TWO.</p>
+    </div>
+  </footer>
+</main>
+
+<script>
+  (function () {
+    if (typeof IntersectionObserver === 'undefined') return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.stitch-section').forEach(function (s) { observer.observe(s); });
+  })();
+</script>
+
+{% comment %}Variant selector JS — vanilla (per دستور §2: no deps).
+  Enforces: both color AND size must be selected before ADD TO SYSTEM.
+  Updates: price display, stock status, variant_id hidden field.{% endcomment %}
+<script>
+  (function () {
+    var hasColor = document.querySelector('.color-swatch');
+    var hasSize = document.querySelector('.size-btn');
+    var btn = document.getElementById('add-to-cart-btn');
+    var btnText = document.getElementById('add-to-cart-text');
+    var priceDisplay = document.getElementById('variant-price');
+    var stockStatus = document.getElementById('stock-status');
+    var variantInput = document.getElementById('selected-variant-id');
+    var selectedColor = null;
+    var selectedSize = null;
+
+    // If no color and no size variants — auto-select the single variant
+    if (!hasColor && !hasSize) {
+      {% if variants %}
+        variantInput.value = {{ variants.0.pk }};
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        btnText.textContent = 'ADD TO SYSTEM';
+      {% endif %}
+      return;
+    }
+
+    // If only color (no size) or only size (no color) — auto-enable on selection
+    if (hasColor && !hasSize) {
+      document.querySelectorAll('.color-radio').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+          var label = this.closest('.color-swatch');
+          selectedColor = label.dataset;
+          variantInput.value = label.dataset.variantId;
+          priceDisplay.textContent = label.dataset.variantPrice;
+          btn.disabled = false;
+          btn.classList.remove('opacity-50', 'cursor-not-allowed');
+          btnText.textContent = 'ADD TO SYSTEM';
+          document.getElementById('selected-color-name').textContent = label.dataset.colorName;
+          checkStock(label);
+        });
+      });
+      return;
+    }
+
+    if (hasSize && !hasColor) {
+      document.querySelectorAll('.size-radio').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+          var label = this.closest('.size-btn');
+          variantInput.value = label.dataset.variantId;
+          btn.disabled = false;
+          btn.classList.remove('opacity-50', 'cursor-not-allowed');
+          btnText.textContent = 'ADD TO SYSTEM';
+          document.getElementById('selected-size-name').textContent = label.dataset.sizeName;
+        });
+      });
+      return;
+    }
+
+    // Both color AND size — find the matching variant
+    function tryMatch() {
+      if (!selectedColor || !selectedSize) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        btnText.textContent = 'SELECT COLOR & SIZE';
+        variantInput.value = '';
+        return;
+      }
+      // Look for a variant that has both the selected color_id and size_id
+      // by checking the data attributes on color swatches (they carry variant_id + color_id)
+      // and size buttons (they carry variant_id + size_id).
+      // The variant_id from the color swatch and the size button must match.
+      var matchedVariant = null;
+      // Actually: each variant has a unique color+size combo. We need to find
+      // the swatch that matches both selected color and size.
+      document.querySelectorAll('.color-swatch').forEach(function (swatch) {
+        if (swatch.dataset.colorId === selectedColor.colorId) {
+          // Check if this swatch's variant also has the selected size
+          var variantId = swatch.dataset.variantId;
+          var sizeBtn = document.querySelector('.size-btn[data-variant-id="' + variantId + '"]');
+          if (sizeBtn && sizeBtn.dataset.sizeId === selectedSize.sizeId) {
+            matchedVariant = swatch;
+          }
+        }
+      });
+      if (matchedVariant) {
+        variantInput.value = matchedVariant.dataset.variantId;
+        priceDisplay.textContent = matchedVariant.dataset.variantPrice;
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        btnText.textContent = 'ADD TO SYSTEM';
+        checkStock(matchedVariant);
+      } else {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        btnText.textContent = 'COMBO UNAVAILABLE';
+        variantInput.value = '';
+        if (stockStatus) {
+          stockStatus.textContent = 'This color/size combination is not available.';
+          stockStatus.classList.remove('hidden');
+          stockStatus.classList.add('text-error');
+        }
+      }
+    }
+
+    function checkStock(swatch) {
+      var stock = parseInt(swatch.dataset.variantStock || '0', 10);
+      if (stockStatus) {
+        if (stock <= 0) {
+          stockStatus.textContent = 'OUT OF STOCK';
+          stockStatus.classList.remove('hidden');
+          stockStatus.classList.add('text-error');
+          btn.disabled = true;
+          btn.classList.add('opacity-50', 'cursor-not-allowed');
+          btnText.textContent = 'OUT OF STOCK';
+        } else if (stock <= 5) {
+          stockStatus.textContent = 'LOW STOCK — only ' + stock + ' left';
+          stockStatus.classList.remove('hidden', 'text-error');
+          stockStatus.classList.add('text-primary');
+        } else {
+          stockStatus.classList.add('hidden');
+        }
+      }
+    }
+
+    // Color swatch selection
+    document.querySelectorAll('.color-radio').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        var label = this.closest('.color-swatch');
+        selectedColor = { colorId: label.dataset.colorId, colorName: label.dataset.colorName };
+        document.getElementById('selected-color-name').textContent = label.dataset.colorName;
+        tryMatch();
+      });
+    });
+
+    // Size button selection
+    document.querySelectorAll('.size-radio').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        var label = this.closest('.size-btn');
+        selectedSize = { sizeId: label.dataset.sizeId, sizeName: label.dataset.sizeName };
+        document.getElementById('selected-size-name').textContent = label.dataset.sizeName;
+        tryMatch();
+      });
+    });
+  })();
+</script>
+{% endblock %}

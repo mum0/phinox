@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 3 / Page 4 (Returns & Refunds).
+Source: stitch_phinox_architectural_luxury_e_commerce/phinox_legal_terms_returns_legal_desktop/code.html
+
+Per دستور §10: 14-day architectural guarantee across all 27 Egyptian
+governorates. Refund rails: Paymob card refunds, COD bank transfers,
+valU BNPL reversal.
+{% endcomment %}
+
+{% block title %}PHINOX — Returns & Refunds{% endblock %}
+
+{% block body_class %}bg-surface-container-lowest font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container{% endblock %}
+
+{% block body %}
+<header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.6)]" role="banner">
+  <div class="h-16 max-w-[1440px] mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between">
+    <a class="flex items-center gap-3 group" href="{% url 'pages:home' %}" aria-label="PHINOX home">
+      <span class="font-label-technical text-label-technical tracking-widest text-on-surface uppercase font-bold">PHINOX</span>
+    </a>
+    <nav class="hidden md:flex items-center gap-gutter" aria-label="Legal navigation">
+      <a class="font-label-technical text-label-technical uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors" href="{% url 'pages:privacy' %}">PRIVACY</a>
+      <a class="font-label-technical text-label-technical uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors" href="{% url 'pages:terms' %}">TERMS</a>
+      <a aria-current="page" class="uppercase tracking-widest transition-colors text-on-surface bg-surface-container-high font-label-technical px-2 py-1" href="{% url 'pages:returns' %}">RETURNS</a>
+    </nav>
+    <a class="flex items-center justify-center p-2 text-on-surface hover:text-primary transition-colors min-h-[48px]" href="{% url 'cart:cart' %}" aria-label="Shopping cart">
+      <span class="material-symbols-outlined text-[20px]" aria-hidden="true">shopping_bag</span>
+    </a>
+  </div>
+</header>
+
+<main class="w-full pt-16 bg-surface-container-lowest min-h-screen">
+
+  <section class="py-16 md:py-24 px-margin-mobile md:px-margin-desktop" aria-labelledby="returns-heading">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex items-center gap-gutter mb-6">
+        <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+        <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">// RETURNS &amp; REFUNDS PROTOCOL</span>
+      </div>
+      <h1 id="returns-heading" class="font-display-xl text-[40px] md:text-[56px] leading-none uppercase font-extrabold tracking-tight text-on-surface">
+        RETURNS &amp; REFUNDS
+      </h1>
+      <p class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest mt-6">
+        14-DAY ARCHITECTURAL GUARANTEE // ALL 27 GOVERNORATES
+      </p>
+      <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mt-8 leading-relaxed">
+        The PHINOX architectural guarantee: 14 days from doorstep handover to return or exchange any standard product. Free reverse-dispatch pickup across all 27 Egyptian governorates.
+      </p>
+    </div>
+  </section>
+
+  <section class="py-12 px-margin-mobile md:px-margin-desktop bg-surface-container-low">
+    <div class="max-w-3xl mx-auto space-y-12">
+
+      <article>
+        <h2 class="font-headline-lg text-[24px] text-on-surface uppercase tracking-tight mb-4">3.1 ELIGIBILITY WINDOW</h2>
+        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          The 14-day return window starts on the day after doorstep handover (delivery confirmation). Items must be returned in original condition: tags attached, packaging intact, no wear marks, and all included accessories (locks, dust bags, PIN cards) returned. Items failing the condition check may be returned to the sender at the sender's cost.
+        </p>
+      </article>
+
+      <article>
+        <h2 class="font-headline-lg text-[24px] text-on-surface uppercase tracking-tight mb-4">3.2 INITIATING A RETURN</h2>
+        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-4">
+          To initiate a return:
+        </p>
+        <ol class="space-y-3 font-body-md text-body-md text-on-surface-variant ml-6 list-decimal">
+          <li>Visit <a href="{% url 'orders_mgmt:history' %}" class="text-primary underline">your order archive</a> and locate the order containing the item</li>
+          <li>Click "TRACK" then "CONTACT SUPPORT // DISPATCH" — specify the item(s) to return and the reason (size, fit, defect, change-of-mind)</li>
+          <li>Our dispatch team responds within 24 hours with a return-pickup slot and reverse-dispatch tracking code</li>
+          <li>Seal the items in original packaging; the courier arrives with the reverse-dispatch PIN at the agreed slot</li>
+          <li>Hand over the package; refund is processed within 5-10 business days of receipt at our Alexandria hub</li>
+        </ol>
+      </article>
+
+      <article>
+        <h2 class="font-headline-lg text-[24px] text-on-surface uppercase tracking-tight mb-4">3.3 REFUND PROCESSING TIMES</h2>
+        <div class="space-y-3 font-body-md text-body-md text-on-surface-variant">
+          <div class="bg-surface-container-lowest p-4 border border-outline-variant">
+            <p class="font-label-technical text-label-technical text-primary uppercase tracking-wider mb-2">CARD VIA PAYMOB</p>
+            <p>Credited back to the original card within 5-10 business days. The 3D-Secure verified token is reversed; no re-authentication required.</p>
+          </div>
+          <div class="bg-surface-container-lowest p-4 border border-outline-variant">
+            <p class="font-label-technical text-label-technical text-primary uppercase tracking-wider mb-2">VALU BNPL</p>
+            <p>The original installment plan is reversed; pending installments are cancelled; paid installments are refunded to the original valU account within 7 business days.</p>
+          </div>
+          <div class="bg-surface-container-lowest p-4 border border-outline-variant">
+            <p class="font-label-technical text-label-technical text-primary uppercase tracking-wider mb-2">COD (CASH ON DELIVERY)</p>
+            <p>Bank transfer to your verified account (requires sending your bank account details via <a href="{% url 'pages:contact' %}" class="text-primary underline">contact</a>). Processed within 7 business days of return pickup confirmation.</p>
+          </div>
+          <div class="bg-surface-container-lowest p-4 border border-outline-variant">
+            <p class="font-label-technical text-label-technical text-primary uppercase tracking-wider mb-2">FAWRYPAY</p>
+            <p>Refund issued as a FawryPay cash-out code sent to your registered phone within 5 business days; redeemable at any Fawry outlet.</p>
+          </div>
+        </div>
+      </article>
+
+      <article>
+        <h2 class="font-headline-lg text-[24px] text-on-surface uppercase tracking-tight mb-4">3.4 EXCHANGES</h2>
+        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          Exchanges for a different size of the same product are free (subject to availability) and follow the same return flow. If the new size is unavailable, a full refund is issued. Exchanging for a different product entirely is treated as a return + new order.
+        </p>
+      </article>
+
+      <article>
+        <h2 class="font-headline-lg text-[24px] text-on-surface uppercase tracking-tight mb-4">3.5 NON-RETURNABLE ITEMS</h2>
+        <ul class="space-y-2 font-body-md text-body-md text-on-surface-variant ml-6">
+          <li>— Final-sale and limited-drop items (marked "LIMITED DROP" on the PDP) — size exchange only</li>
+          <li>— Items damaged by misuse, modification, or wear beyond what's expected from try-on</li>
+          <li>— Custom / made-to-order pieces (clearly marked on the PDP)</li>
+          <li>— Undergarments and accessories worn against the skin (per Egyptian hygiene regulations)</li>
+        </ul>
+      </article>
+
+      <article>
+        <h2 class="font-headline-lg text-[24px] text-on-surface uppercase tracking-tight mb-4">3.6 DEFECTIVE ITEMS</h2>
+        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          Items received with manufacturing defects may be returned for a full refund or replacement at no cost, outside the 14-day window (within a reasonable 30-day defect-discovery period). Contact dispatch with photos of the defect to initiate the defect-return flow.
+        </p>
+      </article>
+
+      <article>
+        <h2 class="font-headline-lg text-[24px] text-on-surface uppercase tracking-tight mb-4">3.7 CONTACT</h2>
+        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          For return inquiries, contact dispatch via <a href="{% url 'pages:contact' %}" class="text-primary underline">the contact page</a>. Reference your order business_id (PHX-ORD-XXXXXX) in all communications.
+        </p>
+      </article>
+
+    </div>
+  </section>
+
+  <footer class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-low border-t border-outline-variant" role="contentinfo">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-gutter">
+      <div>
+        <h3 class="font-display-xl text-[28px] text-on-surface uppercase font-black mb-2">PHINOX</h3>
+        <p class="font-label-technical text-label-technical text-on-surface-variant max-w-xs">Architectural technical wear. Designed with discipline.</p>
+      </div>
+      <div class="mt-8 md:mt-0 w-full md:w-auto flex flex-col gap-4">
+        <div class="h-[1px] w-full bg-outline-variant md:w-64"></div>
+        <p class="font-label-technical text-label-technical text-on-surface-variant uppercase">© {% now "Y" %} PHINOX // ALEXANDRIA NODE</p>
+      </div>
+    </div>
+  </footer>
+</main>
+{% endblock %}

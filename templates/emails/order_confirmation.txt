@@ -1,0 +1,95 @@
+{% comment %}
+PHINOX order confirmation email — plaintext version.
+
+Companion to emails/order_confirmation.html. Renders cleanly in
+text-only clients and as the ``text/plain`` alternative in the
+multipart email (which improves deliverability + spam scoring).
+
+Context: order, items, user, shipping_address, payment, order_url,
+site_domain, currency.
+{% endcomment %}==================================================
+  PHINOX.  —  Forged in fire
+  Order {{ order.business_id }}  ·  CONFIRMED
+==================================================
+
+THANK YOU.
+
+Your order has been placed successfully. We've prepared a summary
+below — you can track its progress any time from your account
+dashboard.
+
+--------------------------------------------------
+STATUS
+--------------------------------------------------
+{% if payment and payment.method_type == "card" and payment.status == "paid" %}Payment received · Card
+  {{ payment.amount|floatformat:2 }} {{ order.currency|default:"EGP" }} captured{% if payment.is_test_transaction %} (test mode){% endif %}
+
+{% elif payment and payment.method_type == "card" and payment.status == "failed" %}Payment failed · Card
+  {{ payment.failure_reason|default:"Simulated failure (test mode)." }}
+
+{% elif payment and payment.method_type == "card" and payment.status == "pending" %}Payment pending · Card
+  Awaiting payment confirmation
+
+{% else %}Pay on delivery · COD
+  {{ order.grand_total|floatformat:2 }} {{ order.currency|default:"EGP" }} due on delivery
+{% endif %}
+
+--------------------------------------------------
+ORDER ITEMS
+--------------------------------------------------
+{% for item in items %}{{ item.name }}
+  SKU: {{ item.sku }}   Qty: {{ item.quantity }}   Price: {{ item.unit_price|floatformat:2 }} {{ currency }}
+  Line total: {{ item.line_total|floatformat:2 }} {{ currency }}
+{% endfor %}
+
+--------------------------------------------------
+TOTALS
+--------------------------------------------------
+Subtotal:    {{ order.subtotal|floatformat:2 }} {{ currency }}
+{% if order.discount_total > 0 %}Discount:    -{{ order.discount_total|floatformat:2 }} {{ currency }}
+{% endif %}Shipping:    {{ order.shipping_cost|floatformat:2 }} {{ currency }}
+--------------------------------------------------
+GRAND TOTAL: {{ order.grand_total|floatformat:2 }} {{ currency }}
+--------------------------------------------------
+
+--------------------------------------------------
+PAYMENT
+--------------------------------------------------
+{% if payment %}Method:   {{ payment.get_method_type_display|default:payment.method_type|upper }}
+Provider: {{ payment.get_payment_provider_display|default:payment.payment_provider|upper }}{% if payment.is_test_transaction %} (TEST){% endif %}
+Status:   {{ payment.status|upper }}
+{% if payment.provider_transaction_id %}Txn ID:   {{ payment.provider_transaction_id }}
+{% endif %}{% else %}Method:   CASH ON DELIVERY
+Provider: COD
+Status:   PAY ON DELIVERY
+{% endif %}
+
+--------------------------------------------------
+SHIPPING ADDRESS
+--------------------------------------------------
+{% if shipping_address %}{{ shipping_address.full_name }}
+{{ shipping_address.phone }}
+{{ shipping_address.address }}
+{{ shipping_address.city }}{% if shipping_address.postal_code %}, {{ shipping_address.postal_code }}{% endif %}
+{{ shipping_address.country }}
+{% else %}Address details pending.
+{% endif %}
+
+--------------------------------------------------
+METADATA
+--------------------------------------------------
+Order ID:   {{ order.business_id }}
+Placed at:  {% if order.placed_at %}{{ order.placed_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}
+Status:     {{ order.status|upper }}
+
+--------------------------------------------------
+VIEW YOUR ORDER
+--------------------------------------------------
+{{ order_url }}
+
+--------------------------------------------------
+
+You received this email because you placed an order at PHINOX.
+
+© 2025 PHINOX. All rights reserved.
+EGP · Egypt

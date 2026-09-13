@@ -1,0 +1,46 @@
+{% extends "base_standard.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-REGISTER-FIX — verification failure page.
+URL: shown when /accounts/verify/<token>/ fails (invalid or expired token).
+
+Per دستور §5: never leak whether the email exists. The page shows a generic
+"verification failed" message + a CTA to register again (the user can re-register
+with the same email if the previous attempt expired).
+{% endcomment %}
+
+{% block title %}PHINOX — Verification Failed{% endblock %}
+
+{% block body_class %}bg-black text-white font-body-md overflow-x-hidden{% endblock %}
+
+{% block body %}
+<main class="pt-14 sm:pt-16 pb-24 min-h-screen flex flex-col items-center justify-center px-margin-mobile">
+  <section class="w-full max-w-md flex flex-col items-center gap-8 text-center">
+    <div class="w-12 h-12 border-2 border-red-500 flex items-center justify-center" aria-hidden="true">
+      <span class="material-symbols-outlined text-red-500 text-2xl">cancel</span>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <span class="font-mono text-[10px] uppercase tracking-widest text-red-500">STATUS // REJECTED</span>
+      <h1 class="font-mono text-2xl uppercase tracking-tight font-bold">VERIFICATION FAILED</h1>
+      <p class="font-mono text-xs text-neutral-400 leading-relaxed max-w-sm">
+        The verification link is invalid or has expired (links are valid for 24 hours).
+        Re-initiate the dossier protocol to receive a new verification transmission.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3 w-full">
+      <a href="{% url 'accounts:register' %}"
+         class="w-full bg-[#E85D04] hover:bg-[#FF6A1A] text-black font-bold text-xs uppercase tracking-widest py-4 transition-all flex items-center justify-center gap-2 min-h-[48px]">
+        <span>RE-INITIATE DOSSIER</span>
+        <span aria-hidden="true">→</span>
+      </a>
+      <a href="{% url 'accounts:login' %}"
+         class="w-full border border-[#262626] hover:border-[#E85D04] text-neutral-400 hover:text-[#E85D04] font-mono text-xs uppercase tracking-widest py-4 transition-all flex items-center justify-center gap-2 min-h-[48px]">
+        <span>← RETURN TO ACCESS</span>
+      </a>
+    </div>
+  </section>
+</main>
+{% endblock %}

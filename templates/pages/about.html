@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 2 / Page 6 (About / Manifesto).
+Source: stitch_phinox_architectural_luxury_e_commerce/phinox_manifesto_about_about_desktop/code.html
+
+Phase 2 status: TemplateView-equivalent (no DB access, no POST handling).
+View: ``apps.pages.views.about`` — just renders this template.
+
+The page is editorial / static — brand story + vision + values. We use
+the Stitch Material Design 3 brand system (same tokens as Home + Profile).
+Content sections:
+  - RULE OF TWO — the philosophy header
+  - ARCHITECTURAL MANIFESTO — long-form brand story
+  - THE THREE MONOLITHS — the brand's three values
+  - GEOMETRIC CUT — design language
+  - LOCALIZED DOMINANCE — production provenance (Alexandria)
+  - PHOTOGRAPHY DIRECTION — visual identity
+  - DESIGNED, MILLED, & SEWN UNDER DIRECT ALEXANDRIA COMMAND — provenance CTA
+{% endcomment %}
+
+{% block title %}PHINOX — Manifesto // About{% endblock %}
+
+{% block extra_head %}
+<style>
+  .stitch-section { opacity: 0; transition: opacity 600ms ease; }
+  .stitch-section.is-visible { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    .stitch-section { opacity: 1; }
+  }
+</style>
+{% endblock %}
+
+{% block body_class %}bg-surface-container-lowest font-body-md text-body-md text-on-surface selection:bg-primary-container selection:text-on-primary-container antialiased{% endblock %}
+
+{% block body %}
+{# ── Top Bar (consistent with Profile/About pages — Stitch bespoke) ──────── #}
+<header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.6)]" role="banner">
+  <div class="h-20 max-w-[1440px] mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a class="flex items-center gap-3 group" href="{% url 'pages:home' %}" aria-label="PHINOX home">
+        <span class="font-label-technical text-label-technical tracking-widest text-on-surface uppercase font-bold">PHINOX</span>
+        <span class="font-label-technical text-label-technical tracking-widest text-primary hidden xl:inline">[SYS.24]</span>
+      </a>
+    </div>
+    <nav class="hidden lg:flex items-center gap-8" aria-label="Primary navigation">
+      <a class="font-label-technical text-label-technical uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors py-1 px-2" href="{% url 'catalog:product_list' %}">SHOP</a>
+      <a aria-current="page" class="uppercase tracking-widest transition-colors py-1 px-2 bg-primary-container text-on-primary-container font-label-technical" href="{% url 'pages:about' %}">ABOUT</a>
+      <a class="font-label-technical text-label-technical uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors py-1 px-2" href="{% url 'pages:contact' %}">CONTACT</a>
+    </nav>
+    <div class="flex items-center gap-5">
+      <a aria-label="Cart" class="text-on-surface-variant hover:text-primary transition-colors flex items-center p-1.5 min-h-[48px]" href="{% url 'cart:cart' %}">
+        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">shopping_bag</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="w-full pt-20 bg-surface-container-lowest min-h-screen">
+
+  {# ── Hero ────────────────────────────────────────────────────────────── #}
+  <section class="relative min-h-[60vh] w-full flex flex-col justify-center items-center px-margin-mobile md:px-margin-desktop py-section-gap text-center" aria-labelledby="hero-heading">
+    <div class="space-y-unit max-w-4xl mx-auto">
+      <div class="flex items-center justify-center gap-gutter mb-6">
+        <div class="w-12 h-px bg-primary" aria-hidden="true"></div>
+        <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">PHILOSOPHY // DOCTRINE</span>
+        <div class="w-12 h-px bg-primary" aria-hidden="true"></div>
+      </div>
+      <h1 id="hero-heading" class="font-display-xl text-[64px] md:text-[80px] leading-none uppercase font-extrabold tracking-tight text-on-surface">
+        RULE OF TWO
+      </h1>
+      <p class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest mt-6">
+        ARCHITECTURAL MANIFESTO // ALEXANDRIA NODE // EST. 2024
+      </p>
+      <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto mt-8 leading-relaxed">
+        A doctrine of discipline, precision, and rebirth. PHINOX stands at the convergence of high-performance technical gear and avant-garde luxury streetwear — engineered under the rule that every element must serve a structural purpose, with no decoration without intent.
+      </p>
+      <div class="flex flex-col sm:flex-row justify-center gap-3 mt-10">
+        <a href="{% url 'catalog:product_list' %}" class="bg-primary text-on-primary font-label-technical text-label-technical px-8 py-4 uppercase tracking-[0.2em] font-bold hover:opacity-90 transition-opacity min-h-[48px] inline-flex items-center justify-center">
+          ENTER THE ARCHIVE →
+        </a>
+        <a href="{% url 'pages:contact' %}" class="border border-outline text-on-surface font-label-technical text-label-technical px-8 py-4 uppercase tracking-[0.2em] hover:border-primary hover:text-primary transition-colors min-h-[48px] inline-flex items-center justify-center">
+          CONTACT DISPATCH
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {# ── The Three Monoliths ───────────────────────────────────────────────── #}
+  <section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-low stitch-section" aria-labelledby="monoliths-heading">
+    <div class="max-w-[1440px] mx-auto">
+      <div class="flex items-center gap-gutter mb-12">
+        <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+        <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">// THE THREE MONOLITHS</span>
+      </div>
+      <h2 id="monoliths-heading" class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight mb-16">
+        ARCHITECTURAL RESTRAINT
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+        <article class="space-y-4 border-t border-outline-variant pt-6">
+          <span class="font-label-technical text-label-technical text-primary uppercase">01</span>
+          <h3 class="font-headline-lg text-[24px] text-on-surface uppercase tracking-tight">DISCIPLINE</h3>
+          <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Every stitch serves a structural purpose. No decorative seam, no superfluous panel, no arbitrary color. The garment is engineered, not ornamented — each element earns its place through function.
+          </p>
+        </article>
+        <article class="space-y-4 border-t border-outline-variant pt-6">
+          <span class="font-label-technical text-label-technical text-primary uppercase">02</span>
+          <h3 class="font-headline-lg text-[24px] text-on-surface uppercase tracking-tight">PRECISION</h3>
+          <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Technical metadata is not decoration — it is the architecture. SKUs, technical specs, and monospaced labels carry the brand's industrial voice. The garment is a laboratory-grade artifact.
+          </p>
+        </article>
+        <article class="space-y-4 border-t border-outline-variant pt-6">
+          <span class="font-label-technical text-label-technical text-primary uppercase">03</span>
+          <h3 class="font-headline-lg text-[24px] text-on-surface uppercase tracking-tight">REBIRTH</h3>
+          <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            The convergence of function and form is the rebirth of luxury — not as ornamentation, but as architecture. We define a new vocabulary where discipline becomes the new opulence.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  {# ── Geometric Cut (Design Language) ───────────────────────────────────── #}
+  <section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-lowest stitch-section" aria-labelledby="cut-heading">
+    <div class="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+      <div class="lg:col-span-7">
+        <div class="flex items-center gap-gutter mb-6">
+          <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+          <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">// GEOMETRIC CUT</span>
+        </div>
+        <h2 id="cut-heading" class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight mb-8">
+          SHARP-EDGE ARCHITECTURE
+        </h2>
+        <div class="space-y-6 font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          <p>
+            The shape language is strictly sharp. Curves are avoided to maintain the architectural and disciplined aesthetic. Rectangular containers, hard-edged buttons, and sharp-cornered images communicate strength and precision.
+          </p>
+          <p>
+            The only curves permitted are within the brand logo itself, serving as a point of organic contrast against the rigid UI — a graffiti signature on an otherwise industrial blueprint.
+          </p>
+          <p>
+            Elevation is achieved through tonal layers and bold outlines, not traditional shadows. Surface tiering defines depth through color, with ghost borders (1px) separating elements rather than soft drop-shadows.
+          </p>
+        </div>
+      </div>
+      <aside class="lg:col-span-5 lg:sticky lg:top-24" aria-label="Design language cards">
+        <div class="grid grid-cols-2 gap-gutter">
+          <div class="bg-surface-container-low p-gutter border-t-2 border-primary">
+            <span class="font-label-technical text-label-technical text-primary uppercase tracking-widest">BORDER-RADIUS</span>
+            <p class="font-display-xl text-[40px] text-on-surface uppercase font-extrabold mt-unit">0PX</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mt-2">ZERO RADIUS ACROSS ALL ELEMENTS</p>
+          </div>
+          <div class="bg-surface-container-low p-gutter border-t-2 border-primary">
+            <span class="font-label-technical text-label-technical text-primary uppercase tracking-widest">ACCENT</span>
+            <p class="font-display-xl text-[24px] text-on-surface uppercase font-extrabold mt-unit">#E85D04</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mt-2">FIRE ORANGE — LOCK STITCH ONLY</p>
+          </div>
+          <div class="bg-surface-container-low p-gutter border-t-2 border-primary">
+            <span class="font-label-technical text-label-technical text-primary uppercase tracking-widest">SURFACE</span>
+            <p class="font-display-xl text-[24px] text-on-surface uppercase font-extrabold mt-unit">#121414</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mt-2">DARK SURFACE — DARK-MODE FIRST</p>
+          </div>
+          <div class="bg-surface-container-low p-gutter border-t-2 border-primary">
+            <span class="font-label-technical text-label-technical text-primary uppercase tracking-widest">TYPEFACE</span>
+            <p class="font-display-xl text-[24px] text-on-surface uppercase font-extrabold mt-unit">JBM</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mt-2">JETBRAINS MONO — INDUSTRIAL LABELS</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  {# ── Localized Dominance (Production Provenance) ───────────────────────── #}
+  <section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-low stitch-section" aria-labelledby="localized-heading">
+    <div class="max-w-[1440px] mx-auto">
+      <div class="flex items-center gap-gutter mb-6">
+        <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+        <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">// LOCALIZED DOMINANCE</span>
+      </div>
+      <h2 id="localized-heading" class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight mb-12">
+        ALEXANDRIA COMMAND NODE
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-12">
+        <div class="bg-surface-container-lowest p-gutter">
+          <span class="font-label-technical text-label-technical text-primary uppercase">SECT</span>
+          <p class="font-display-xl text-[28px] text-on-surface uppercase font-extrabold mt-2">EGYPT</p>
+          <p class="font-label-sm text-label-sm text-on-surface-variant mt-2">PROVENANCE</p>
+        </div>
+        <div class="bg-surface-container-lowest p-gutter">
+          <span class="font-label-technical text-label-technical text-primary uppercase">CITY</span>
+          <p class="font-display-xl text-[28px] text-on-surface uppercase font-extrabold mt-2">ALEXANDRIA</p>
+          <p class="font-label-sm text-label-sm text-on-surface-variant mt-2">COMMAND NODE</p>
+        </div>
+        <div class="bg-surface-container-lowest p-gutter">
+          <span class="font-label-technical text-label-technical text-primary uppercase">RADIUS</span>
+          <p class="font-display-xl text-[28px] text-on-surface uppercase font-extrabold mt-2">27</p>
+          <p class="font-label-sm text-label-sm text-on-surface-variant mt-2">GOVERNORATES SERVED</p>
+        </div>
+        <div class="bg-surface-container-lowest p-gutter">
+          <span class="font-label-technical text-label-technical text-primary uppercase">CURRENCY</span>
+          <p class="font-display-xl text-[28px] text-on-surface uppercase font-extrabold mt-2">EGP</p>
+          <p class="font-label-sm text-label-sm text-on-surface-variant mt-2">EGYPTIAN POUND</p>
+        </div>
+      </div>
+      <div class="border border-outline-variant bg-surface-container-lowest p-gutter md:p-12 max-w-3xl">
+        <p class="font-body-md text-body-md text-on-surface leading-relaxed">
+          PHINOX is engineered, milled, and sewn under direct Alexandria command. Every garment passes through our laboratory-grade quality control before being sealed and dispatched. We deliver to all 27 Egyptian governorates via authorized couriers, with Paymob, valU, Fawry, and Cash-on-Delivery payment rails available at checkout.
+        </p>
+        <p class="font-label-technical text-label-technical text-primary uppercase tracking-widest mt-6 pt-6 border-t border-outline-variant">
+          DESIGNED, MILLED, &amp; SEWN UNDER DIRECT ALEXANDRIA COMMAND
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {# ── CTA ────────────────────────────────────────────────────────────── #}
+  <section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-lowest text-center stitch-section">
+    <div class="max-w-2xl mx-auto space-y-unit">
+      <p class="font-label-technical text-label-technical text-primary uppercase tracking-widest mb-2">// READY TO ENTER THE ARCHIVE</p>
+      <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight mb-6">
+        BEGIN THE RULE OF TWO
+      </h2>
+      <a href="{% url 'catalog:product_list' %}" class="inline-block bg-primary text-on-primary font-label-technical text-label-technical px-8 py-4 uppercase tracking-[0.2em] font-bold hover:opacity-90 transition-opacity min-h-[48px]">
+        ENTER THE ARCHIVE →
+      </a>
+    </div>
+  </section>
+
+  {# ── Footer ────────────────────────────────────────────────────────── #}
+  <footer class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-low border-t border-outline-variant flex flex-col md:flex-row justify-between items-start gap-gutter" role="contentinfo">
+    <div class="space-y-6">
+      <h3 class="font-display-xl text-[40px] text-on-surface uppercase font-black">PHINOX</h3>
+      <p class="font-label-technical text-label-technical text-on-surface-variant max-w-xs">
+        Architectural technical wear. Designed with discipline. Built for the convergence.
+      </p>
+    </div>
+    <div class="mt-16 md:mt-0 w-full flex flex-col gap-4">
+      <div class="h-[1px] w-full bg-outline-variant"></div>
+      <p class="font-label-technical text-label-technical text-on-surface-variant uppercase">© {% now "Y" %} PHINOX. RULE OF TWO.</p>
+    </div>
+  </footer>
+</main>
+
+<script>
+  (function () {
+    if (typeof IntersectionObserver === 'undefined') {
+      document.querySelectorAll('.stitch-section').forEach(function (s) { s.classList.add('is-visible'); });
+      return;
+    }
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.stitch-section').forEach(function (s) { observer.observe(s); });
+  })();
+</script>
+{% endblock %}

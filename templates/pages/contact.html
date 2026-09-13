@@ -1,0 +1,145 @@
+{% extends "base_standard.html" %}
+{% comment %}
+Ported verbatim from Stitch "PHINOX | CONTACT" (code.html). Only outer
+<html>/<head> boilerplate factored into base_standard.html. Form is
+render-only in Phase 1 (no POST handling / ContactMessage model yet — see
+IMPLEMENTATION_PLAN.md §2.3 / Phase 1 scope). Two known content bugs carried
+over unchanged per instructions: (1) H2 is Sentence Case, breaking the
+brand's own uppercase-headline rule; (2) two different Berlin coordinate
+pairs appear (data strip vs. address block) — see plan §5 Q8.
+{% endcomment %}
+
+{% block title %}PHINOX | CONTACT{% endblock %}
+
+{% block extra_head %}
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; display: inline-block; line-height: 1; }
+  .orange-stitch { width: 2px; height: 8px; background-color: #E85D04; }
+  .custom-grid {
+    background-image: linear-gradient(#2A2A2A 1px, transparent 1px), linear-gradient(90deg, #2A2A2A 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  input:focus + .parallel-lines { opacity: 1; }
+</style>
+{% endblock %}
+
+{% block body_class %}bg-background text-on-background selection:bg-tertiary-container selection:text-tertiary font-body-md overflow-x-hidden{% endblock %}
+
+{% block body %}
+{% include "core/components/_topbar_unified.html" %}
+<main class="pt-12 pb-24 min-h-screen">
+  <section class="px-margin-mobile py-12 border-b border-outline-variant">
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center gap-2">
+        <div class="orange-stitch"></div>
+        <span class="font-technical-sm text-technical-sm text-tertiary">SYSTEM.COMMUNICATIONS</span>
+      </div>
+      <h2 class="font-headline-lg-mobile text-headline-lg-mobile uppercase">Interface with Phinox</h2>
+      <p class="text-on-surface-variant max-w-sm mt-4">Technical support and inquiries. Direct protocol enabled for rapid response.</p>
+    </div>
+  </section>
+
+  <section class="px-margin-mobile py-12 grid gap-12">
+    <form class="flex flex-col gap-10" method="post" action="{% url 'pages:contact' %}">
+      {% csrf_token %}
+      <div class="relative group">
+        <label class="font-label-xs text-label-xs text-on-surface-variant block mb-2 uppercase">Subject Identity</label>
+        <input class="w-full bg-transparent border-0 border-b border-outline focus:ring-0 focus:border-transparent px-0 py-2 font-technical-sm text-technical-sm placeholder:text-surface-variant" placeholder="FULL NAME / ENTITY" type="text" name="name"/>
+        <div class="absolute bottom-0 left-0 w-full h-[2px] opacity-0 transition-opacity duration-300 parallel-lines pointer-events-none">
+          <div class="h-[1px] bg-[#E85D04] w-full mb-[2px]"></div>
+          <div class="h-[1px] bg-[#E85D04] w-full"></div>
+        </div>
+      </div>
+      <div class="relative group">
+        <label class="font-label-xs text-label-xs text-on-surface-variant block mb-2 uppercase">Digital Coordinate</label>
+        <input class="w-full bg-transparent border-0 border-b border-outline focus:ring-0 focus:border-transparent px-0 py-2 font-technical-sm text-technical-sm placeholder:text-surface-variant" placeholder="EMAIL@DOMAIN.COM" type="email" name="email"/>
+        <div class="absolute bottom-0 left-0 w-full h-[2px] opacity-0 transition-opacity duration-300 parallel-lines pointer-events-none">
+          <div class="h-[1px] bg-[#E85D04] w-full mb-[2px]"></div>
+          <div class="h-[1px] bg-[#E85D04] w-full"></div>
+        </div>
+      </div>
+      <div class="relative group">
+        <label class="font-label-xs text-label-xs text-on-surface-variant block mb-2 uppercase">Transmission Data</label>
+        <textarea class="w-full bg-transparent border-0 border-b border-outline focus:ring-0 focus:border-transparent px-0 py-2 font-technical-sm text-technical-sm placeholder:text-surface-variant resize-none" placeholder="INPUT MESSAGE CONTENT..." rows="4" name="message"></textarea>
+        <div class="absolute bottom-0 left-0 w-full h-[2px] opacity-0 transition-opacity duration-300 parallel-lines pointer-events-none">
+          <div class="h-[1px] bg-[#E85D04] w-full mb-[2px]"></div>
+          <div class="h-[1px] bg-[#E85D04] w-full"></div>
+        </div>
+      </div>
+      <button class="bg-primary-container border border-outline-variant text-on-surface py-4 w-full font-technical-sm text-technical-sm uppercase tracking-widest hover:border-[#E85D04] transition-colors relative group" type="submit">
+        <div class="absolute top-0 left-0 orange-stitch opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        Transmit Message
+      </button>
+    </form>
+  </section>
+
+  <div class="border-t border-b border-outline-variant bg-surface-container-low px-margin-mobile py-2 flex justify-between items-center overflow-hidden">
+    <span class="font-technical-sm text-[10px] text-surface-variant whitespace-nowrap">PHX_SYSTEM_ACTIVE // STABLE</span>
+    <span class="font-technical-sm text-[10px] text-surface-variant whitespace-nowrap">LAT: 52.5200&deg; N | LONG: 13.4050&deg; E</span>
+  </div>
+
+  <section class="px-margin-mobile py-12 flex flex-col gap-12">
+    <div class="border border-outline-variant p-6 flex flex-col gap-6 bg-surface-container-lowest">
+      <div class="flex justify-between items-start">
+        <div>
+          <h3 class="font-technical-sm text-technical-sm text-tertiary mb-1 uppercase tracking-tighter">Direct Protocol</h3>
+          <p class="font-headline-lg-mobile text-2xl uppercase font-bold">WHATSAPP</p>
+        </div>
+        <span class="material-symbols-outlined text-tertiary">open_in_new</span>
+      </div>
+      <a class="inline-flex items-center gap-2 font-technical-sm text-technical-sm border-b border-tertiary w-fit pb-1 hover:text-tertiary transition-colors opacity-40 cursor-not-allowed pointer-events-none" aria-disabled="true" tabindex="-1" title="Coming soon — WhatsApp integration pending" href="#">
+        <div class="orange-stitch h-2 w-2"></div>
+        START ENCRYPTED CHAT (COMING SOON)
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 gap-8">
+      <div class="border-l border-outline-variant pl-4">
+        <h4 class="font-label-xs text-label-xs text-surface-variant uppercase mb-4">Operational Window</h4>
+        <ul class="font-technical-sm text-technical-sm flex flex-col gap-2">
+          <li class="flex justify-between"><span>MON &mdash; FRI</span> <span class="text-on-surface">09:00 &mdash; 18:00 CET</span></li>
+          <li class="flex justify-between"><span>SAT &mdash; SUN</span> <span class="text-on-surface">AUTOMATED ONLY</span></li>
+        </ul>
+      </div>
+      <div class="border-l border-outline-variant pl-4">
+        <h4 class="font-label-xs text-label-xs text-surface-variant uppercase mb-4">Central Hub Origin</h4>
+        <p class="font-technical-sm text-technical-sm leading-relaxed">
+          PHINOX ARCHITECTURAL LAB<br/>
+          STRASSE DER PARISER KOMMUNE 8<br/>
+          10243 BERLIN, GERMANY
+        </p>
+        <div class="mt-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[16px]">location_on</span>
+          <span class="font-label-xs text-label-xs tracking-tighter text-on-surface">52.5115&deg; N, 13.4385&deg; E</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="w-full h-80 grayscale contrast-125 border-t border-outline-variant overflow-hidden relative">
+    <div class="absolute inset-0 z-10 pointer-events-none custom-grid opacity-20"></div>
+    <div class="absolute inset-0 bg-background/20 z-10 pointer-events-none"></div>
+    <div class="w-full h-full" data-location="Berlin, Germany">
+      <img class="w-full h-full object-cover" alt="Aerial view of Berlin, Germany"
+        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGOy_YS9-kfDlVij-6BL2q1RV84uTwz2FmsE0z3m8g8eE6N-4vaY-9a5kTMr-Ktoyp1NQEfoYAS2L9R7pJoLIMKeWa3gmz_lgvaHpJ2SqFk4LD6hNeCpxApbeBA0ygYCNOV-50ErTq7vYYp9-gTvZUmEw_B2AT6dtIqr3MYYXP2xIsuV4XFbhSpKhf5cwuf1Ah_VjyYNbLrAzBL0CBCo1lm22H5O5M0zwoEPtdPBfdmQP7S4pXnoyp7wesOQZnQLs4gpT2maQhuMI"/>
+    </div>
+  </section>
+</main>
+{% include "core/components/_footer_unified.html" %}
+{% include "core/components/_bottom_nav_dock.html" %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.querySelectorAll('input, textarea').forEach(el => {
+    el.addEventListener('focus', () => {
+      el.parentElement.querySelector('.parallel-lines').style.opacity = '1';
+    });
+    el.addEventListener('blur', () => {
+      if (!el.value) {
+        el.parentElement.querySelector('.parallel-lines').style.opacity = '0';
+      }
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+Standard shell: Standard TopAppBar + Bottom Nav Dock (5-item).
+Used by: core/404.html, pages/contact.html, pages/home.html.
+Family-B design tokens (see IMPLEMENTATION_PLAN.md §1 / static/css/tokens.css).
+Ported from Stitch "PHINOX // 404" and "PHINOX | CONTACT" <head> blocks verbatim,
+factored into inheritance blocks so the fonts/tailwind config aren't duplicated
+per page (zero effect on rendered output).
+{% endcomment %}
+
+{% block fonts %}
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+{% endblock %}
+
+{% block tailwind %}
+{% comment %}Tailwind — Phase 6 hybrid: CDN in dev (DEBUG=True), compiled
+dist.css in prod (DEBUG=False). Same approach as base.html; the family-A
+tokens defined here are a subset of the full token list in base.html so
+the compiled dist.css covers them.{% endcomment %}
+{% if debug %}
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "secondary": "#c6c6c7", "tertiary-fixed": "#ffdbcd", "on-primary-fixed": "#1c1b1b",
+          "surface-bright": "#38393a", "surface-variant": "#343535", "on-tertiary-container": "#d35300",
+          "on-background": "#e3e2e2", "surface-tint": "#c8c6c5", "secondary-fixed-dim": "#c6c6c7",
+          "primary-fixed-dim": "#c8c6c5", "primary-fixed": "#e5e2e1", "on-secondary-container": "#b4b5b5",
+          "surface-container-lowest": "#0d0e0f", "tertiary": "#ffb596", "tertiary-container": "#210700",
+          "primary-container": "#0f0f0f", "outline-variant": "#444748", "on-surface": "#e3e2e2",
+          "error": "#ffb4ab", "on-secondary-fixed": "#1a1c1c", "surface": "#121414",
+          "on-secondary-fixed-variant": "#454747", "error-container": "#93000a", "primary": "#c8c6c5",
+          "secondary-fixed": "#e2e2e2", "tertiary-fixed-dim": "#ffb596", "on-tertiary-fixed": "#360f00",
+          "surface-container-low": "#1a1c1c", "on-error-container": "#ffdad6", "on-tertiary": "#581e00",
+          "surface-dim": "#121414", "on-secondary": "#2f3131", "outline": "#8e9192",
+          "inverse-on-surface": "#2f3131", "on-primary": "#313030", "secondary-container": "#454747",
+          "surface-container-high": "#292a2a", "on-surface-variant": "#c4c7c7", "inverse-surface": "#e3e2e2",
+          "surface-container-highest": "#343535", "on-error": "#690005", "background": "#121414",
+          "surface-container": "#1e2020", "on-tertiary-fixed-variant": "#7c2e00", "on-primary-container": "#7d7b7b",
+          "inverse-primary": "#5f5e5e", "on-primary-fixed-variant": "#474646"
+        },
+        borderRadius: { "DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px" },
+        spacing: {
+          "unit": "4px", "gutter": "1px", "margin-desktop": "64px", "margin-mobile": "20px",
+          "grid-columns": "12", "touch-target-min": "48px"
+        },
+        fontFamily: {
+          "display-xl": ["Archivo Narrow"], "headline-lg-mobile": ["Archivo Narrow"], "headline-lg": ["Archivo Narrow"],
+          "technical-sm": ["JetBrains Mono"], "label-xs": ["JetBrains Mono"], "body-md": ["Hanken Grotesk"]
+        },
+        fontSize: {
+          "display-xl": ["80px", {"lineHeight": "1.0", "letterSpacing": "0.10em", "fontWeight": "700"}],
+          "headline-lg-mobile": ["32px", {"lineHeight": "1.1", "letterSpacing": "0.08em", "fontWeight": "600"}],
+          "headline-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "0.08em", "fontWeight": "600"}],
+          "technical-sm": ["12px", {"lineHeight": "1.4", "letterSpacing": "0.20em", "fontWeight": "500"}],
+          "label-xs": ["10px", {"lineHeight": "1.2", "letterSpacing": "0.25em", "fontWeight": "700"}],
+          "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0.02em", "fontWeight": "400"}]
+        }
+      }
+    }
+  }
+</script>
+{% comment %}NOTE: this transcribes the CONTACT page's config (radius 0px, correct
+per brand rule). The 404 source page shipped a DIFFERENT radius block
+(0.25rem/0.5rem/0.75rem) — treated as an export bug per plan §1/§5 Q6,
+not replicated.{% endcomment %}
+{% else %}
+{# Production: compiled Tailwind dist.css from base.html. #}
+<link rel="stylesheet" href="{% load static %}{% static 'css/dist.css' %}">
+{% endif %}
+{% endblock %}
+
+{% block body_class %}bg-background text-on-background font-body-md{% endblock %}
+
+{% block body %}
+{% include "core/components/_topbar_unified.html" %}
+<main class="pt-14 sm:pt-16 pb-20 sm:pb-6 lg:pb-12 min-h-screen">
+  {% block content %}{% endblock %}
+</main>
+{% include "core/components/_footer_unified.html" %}
+{% include "core/components/_bottom_nav_dock.html" %}
+{% endblock %}

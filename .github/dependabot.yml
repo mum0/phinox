@@ -1,0 +1,72 @@
+# PHINOX dependency-update config — Dependabot opens PRs to bump deps.
+#
+# Cadence:
+#   - Python (pip): weekly (Mondays).
+#   - JavaScript (npm): weekly (Mondays, same day so PRs cluster).
+#   - GitHub Actions: weekly (Mondays).
+#
+# Per دستور §2: "Do not add a new dependency without human approval." —
+# Dependabot PRs respect this: each PR is reviewable + the human decides
+# whether to merge. Per دستور §7: one PR per task + squash-merge. Dependabot
+# opens ONE PR per dep update (no batching), keeping reviews easy.
+#
+# Per دستور §5: Dependabot itself cannot expose secrets (no token with
+# package-write scope by default), so the worst it can do is open a PR
+# with a bumped version. Reviewer's responsibility to run CI before merge.
+version: 2
+updates:
+  # Python dependencies (requirements/*.txt)
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Africa/Cairo
+    open-pull-requests-limit: 5
+    # Group minor + patch updates into ONE PR (reduces PR noise). Major
+    # version bumps get their own PR (they're more likely to break).
+    groups:
+      python-minor:
+        update-types:
+          - minor
+          - patch
+    commit-message:
+      prefix: "chore(deps):"
+      prefix-development: "chore(deps-dev):"
+    labels:
+      - dependencies
+      - python
+
+  # JavaScript dependencies (package.json — Tailwind CLI build only)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Africa/Cairo
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor:
+        update-types:
+          - minor
+          - patch
+    commit-message:
+      prefix: "chore(deps-npm):"
+    labels:
+      - dependencies
+      - npm
+
+  # GitHub Actions versions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(ci):"
+    labels:
+      - dependencies
+      - github-actions

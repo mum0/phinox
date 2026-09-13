@@ -1,0 +1,56 @@
+{% extends "base_standard.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-REGISTER-FIX — "Check your email" page shown after successful registration.
+URL: /accounts/register/done/  (name="accounts:register_done")
+
+Per دستور §5: user has been created with is_active=False. The verification
+email is sent (console backend in dev → URL appears in the runserver log).
+This page tells the user to check their email + has a "resend" CTA
+(stub — wired to a future Phase 7 task).
+{% endcomment %}
+
+{% block title %}PHINOX — Dossier Initialized{% endblock %}
+
+{% block body_class %}bg-black text-white font-body-md overflow-x-hidden{% endblock %}
+
+{% block body %}
+<main class="pt-14 sm:pt-16 pb-24 min-h-screen flex flex-col items-center justify-center px-margin-mobile">
+  <section class="w-full max-w-md flex flex-col items-center gap-8 text-center">
+    <div class="w-12 h-12 border-2 border-[#E85D04] flex items-center justify-center" aria-hidden="true">
+      <span class="material-symbols-outlined text-[#E85D04] text-2xl">mark_email_read</span>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <span class="font-mono text-[10px] uppercase tracking-widest text-neutral-500">PROTOCOL // PENDING VERIFICATION</span>
+      <h1 class="font-mono text-2xl uppercase tracking-tight font-bold">DOSSIER INITIALIZED</h1>
+      <p class="font-mono text-xs text-neutral-400 leading-relaxed max-w-sm">
+        A verification transmission has been dispatched to your communication identifier.
+        Open the encrypted link within 24 hours to activate your operative dossier.
+      </p>
+    </div>
+
+    <div class="w-full border-l-2 border-[#E85D04] bg-[#1a1a1a] p-4 flex flex-col gap-2 text-left">
+      <span class="font-mono text-[10px] uppercase tracking-widest text-[#E85D04]">DIRECTIVE</span>
+      <p class="font-mono text-xs text-neutral-300 leading-relaxed">
+        In dev mode (EMAIL_BACKEND=console), the verification URL is printed
+        to the runserver terminal — copy it into your browser to activate
+        the account.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3 w-full">
+      <a href="{% url 'accounts:login' %}"
+         class="w-full bg-[#E85D04] hover:bg-[#FF6A1A] text-black font-bold text-xs uppercase tracking-widest py-4 transition-all flex items-center justify-center gap-2 min-h-[48px]">
+        <span>RETURN TO ACCESS POINT</span>
+        <span aria-hidden="true">→</span>
+      </a>
+      <a href="{% url 'pages:home' %}"
+         class="w-full border border-[#262626] hover:border-[#E85D04] text-neutral-400 hover:text-[#E85D04] font-mono text-xs uppercase tracking-widest py-4 transition-all flex items-center justify-center gap-2 min-h-[48px]">
+        <span>← BACK TO NODE</span>
+      </a>
+    </div>
+  </section>
+</main>
+{% endblock %}

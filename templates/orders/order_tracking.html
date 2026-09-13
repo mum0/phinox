@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 2 / Page 5 (Order Tracking).
+Source: stitch_phinox_architectural_luxury_e_commerce/phinox_live_dispatch_tracking_orders_phx_88291_track_desktop/code.html
+
+Context provided by OrderTrackingView (LoginRequiredMixin + DetailView):
+  - ``order``             — the Order instance
+  - ``order_items``       — all OrderItem rows (snapshot data)
+  - ``payment``           — most recent Payment (if any)
+  - ``shipping_address``  — order.shipping_address (if attached)
+  - ``current_stage``     — int 0-4 (PENDING=0, CONFIRMED=1, PROCESSING=2, SHIPPED=3, DELIVERED=4)
+
+Per AGENTS.md §10: Order status transitions are PENDING → CONFIRMED →
+PROCESSING → SHIPPED → DELIVERED. CANCELLED + REFUNDED are terminal side-states.
+
+The 4-stage timeline:
+  Stage 1: CONFIRMED       — order accepted, awaiting processing
+  Stage 2: PROCESSING      — order being prepared for dispatch
+  Stage 3: SHIPPED         — in transit via authorized courier
+  Stage 4: DELIVERED       — handed over at doorstep (PIN verified)
+{% endcomment %}
+
+{% block title %}PHINOX — Live Dispatch // {{ order.business_id }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .tech-grid {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+</style>
+{% endblock %}
+
+{% block body_class %}tech-grid min-h-screen flex flex-col justify-between selection:bg-brand-orange selection:text-white{% endblock %}
+
+{% block body %}
+{# ── Top Bar ─────────────────────────────────────────────────────────────── #}
+<header class="border-b border-brand-border bg-black/90 backdrop-blur sticky top-0 z-50" role="banner">
+  <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+    <a href="{% url 'orders_mgmt:detail' business_id=order.business_id %}" class="flex items-center gap-2 text-xs font-mono text-brand-muted hover:text-brand-orange transition-colors group" aria-label="Return to order detail">
+      <span class="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1" aria-hidden="true">arrow_back</span>
+      <span>RETURN // ORDER DETAIL</span>
+    </a>
+    <a href="{% url 'pages:home' %}" class="block transition-transform hover:scale-105 duration-300" aria-label="PHINOX home">
+      <span class="font-display text-xl md:text-2xl text-brand-text uppercase font-bold tracking-[0.10em]">PHINOX</span>
+    </a>
+    <div class="flex items-center gap-4 text-xs font-mono">
+      <div class="flex items-center gap-2 px-3 py-1 bg-brand-surface border border-brand-border text-brand-text">
+        <span class="w-2 h-2 {% if order.status == 'shipped' %}bg-brand-orange animate-pulse{% elif order.status == 'delivered' %}bg-emerald-500{% else %}bg-brand-muted{% endif %}" aria-hidden="true"></span>
+        <span class="uppercase tracking-wider">
+          {% if order.status == 'shipped' %}LIVE{% elif order.status == 'delivered' %}DELIVERED{% else %}STANDBY{% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+</header>
+
+{# ── Main ───────────────────────────────────────────────────────────────── #}
+<main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12 flex-1 w-full">
+
+  {# ── Page header ─────────────────────────────────────────────────────────── #}
+  <div class="mb-10">
+    <div class="flex items-center gap-2 font-mono text-xs text-brand-orange uppercase tracking-wider mb-2">
+      <span>// LIVE DISPATCH TELEMETRY</span>
+      <span>•</span>
+      <span>REF #{{ order.business_id }}</span>
+    </div>
+    <h1 class="font-display text-3xl md:text-4xl font-bold text-brand-text uppercase tracking-tight">
+      LIVE DISPATCH <span class="text-brand-orange">//</span> TRACKING
+    </h1>
+    <p class="font-mono text-sm text-brand-muted mt-3">
+      Order placed {{ order.created_at|date:"jS F Y, H:i" }} · Last updated {{ order.updated_at|date:"jS F Y, H:i" }}
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+
+    {# ── LEFT: Timeline ───────────────────────────────────────────────────── #}
+    <section class="lg:col-span-7" aria-labelledby="timeline-heading">
+      <h2 id="timeline-heading" class="font-mono text-xs uppercase tracking-widest text-brand-orange font-bold mb-4">// DISPATCH PROTOCOL // 4-STAGE PROGRESS</h2>
+
+      <div class="space-y-4">
+
+        {% with stage=current_stage %}
+          {# ── Stage 1: CONFIRMED ──────────────────────────────────────────── #}
+          <article class="flex items-start gap-4 relative">
+            <div class="w-8 h-8 {% if stage >= 1 %}bg-brand-orange text-black border-brand-orange{% else %}bg-brand-surface-high border-brand-border text-brand-dim{% endif %} flex items-center justify-center font-mono text-xs z-10">
+              {% if stage >= 1 %}<span class="material-symbols-outlined text-[14px]" aria-hidden="true">check</span>{% else %}01{% endif %}
+            </div>
+            <div class="flex-1 {% if stage < 1 %}opacity-60{% endif %} bg-brand-surface border border-brand-border p-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-mono font-bold text-brand-text uppercase">01 // ORDER CONFIRMED</h3>
+                <span class="text-[11px] font-mono {% if stage >= 1 %}text-brand-orange{% else %}text-brand-dim{% endif %}">
+                  {% if stage >= 1 %}{{ order.created_at|date:"Y-m-d H:i" }}{% else %}PENDING{% endif %}
+                </span>
+              </div>
+              <p class="text-xs text-brand-muted mt-1">
+                Order received and verified. Inventory reserved. Awaiting processing.
+              </p>
+            </div>
+          </article>
+
+          {# ── Stage 2: PROCESSING ────────────────────────────────────────── #}
+          <article class="flex items-start gap-4 relative">
+            <div class="w-8 h-8 {% if stage >= 2 %}bg-brand-orange text-black border-brand-orange{% else %}bg-brand-surface-high border-brand-border text-brand-dim{% endif %} flex items-center justify-center font-mono text-xs z-10">
+              {% if stage >= 2 %}<span class="material-symbols-outlined text-[14px]" aria-hidden="true">check</span>{% else %}02{% endif %}
+            </div>
+            <div class="flex-1 {% if stage < 2 %}opacity-60{% endif %} bg-brand-surface border border-brand-border p-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-mono font-bold text-brand-text uppercase">02 // PROCESSING // ARCHIVE PREPARATION</h3>
+                <span class="text-[11px] font-mono {% if stage >= 2 %}text-brand-orange{% else %}text-brand-dim{% endif %}">
+                  {% if stage >= 2 and order.updated_at %}{{ order.updated_at|date:"Y-m-d H:i" }}{% elif stage > 2 %}COMPLETE{% else %}PENDING{% endif %}
+                </span>
+              </div>
+              <p class="text-xs text-brand-muted mt-1">
+                Items packed and sealed at the Alexandria archive hub. Tamper-proof RFID tag attached.
+              </p>
+            </div>
+          </article>
+
+          {# ── Stage 3: SHIPPED ────────────────────────────────────────────── #}
+          <article class="flex items-start gap-4 relative">
+            <div class="w-8 h-8 {% if stage >= 3 %}bg-brand-orange text-black border-brand-orange{% else %}bg-brand-surface-high border-brand-border text-brand-dim{% endif %} flex items-center justify-center font-mono text-xs z-10">
+              {% if stage == 3 %}<span class="material-symbols-outlined text-[14px] animate-pulse" aria-hidden="true">local_shipping</span>{% elif stage > 3 %}<span class="material-symbols-outlined text-[14px]" aria-hidden="true">check</span>{% else %}03{% endif %}
+            </div>
+            <div class="flex-1 {% if stage < 3 %}opacity-60{% endif %} bg-brand-surface border {% if stage == 3 %}border-brand-orange{% else %}border-brand-border{% endif %} p-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-mono font-bold text-brand-text uppercase">03 // DISPATCHED // IN TRANSIT</h3>
+                <span class="text-[11px] font-mono {% if stage == 3 %}text-brand-orange animate-pulse{% elif stage > 3 %}text-brand-orange{% else %}text-brand-dim{% endif %}">
+                  {% if stage == 3 %}LIVE{% elif stage > 3 %}COMPLETE{% else %}PENDING{% endif %}
+                </span>
+              </div>
+              <p class="text-xs text-brand-muted mt-1">
+                Package loaded on authorized fleet van. GPS telemetry live.
+              </p>
+              {% if stage == 3 %}
+              <div class="mt-3 pt-3 border-t border-brand-border/60 flex items-center justify-between text-xs font-mono">
+                <span class="text-brand-muted">Estimated Delivery Window:</span>
+                <span class="text-brand-orange font-bold">TBD // CHECK SMS</span>
+              </div>
+              {% endif %}
+            </div>
+          </article>
+
+          {# ── Stage 4: DELIVERED (PIN VERIFICATION) ────────────────────────── #}
+          <article class="flex items-start gap-4 relative">
+            <div class="w-8 h-8 {% if stage >= 4 %}bg-emerald-500 text-black border-emerald-500{% else %}bg-brand-surface-high border-brand-border text-brand-dim{% endif %} flex items-center justify-center font-mono text-xs z-10">
+              {% if stage >= 4 %}<span class="material-symbols-outlined text-[14px]" aria-hidden="true">check</span>{% else %}04{% endif %}
+            </div>
+            <div class="flex-1 {% if stage < 4 %}opacity-60{% endif %} bg-brand-surface border border-brand-border p-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-mono font-bold text-brand-text uppercase">04 // SEALED DOORSTEP HANDOVER (PIN VERIFICATION)</h3>
+                <span class="text-[11px] font-mono {% if stage >= 4 %}text-emerald-400{% else %}text-brand-dim{% endif %}">
+                  {% if stage >= 4 %}DELIVERED{% else %}PENDING ARRIVAL{% endif %}
+                </span>
+              </div>
+              <p class="text-xs text-brand-muted mt-1">
+                Driver arrives at the destination. Package is released only upon customer submitting the 4-digit PIN via SMS.
+              </p>
+            </div>
+          </article>
+
+          {# ── Cancellation overlay (if order is cancelled) ─────────────────── #}
+          {% if order.status == 'cancelled' or order.status == 'refunded' %}
+            <article class="flex items-start gap-4 relative">
+              <div class="w-8 h-8 bg-brand-orange text-black border-brand-orange flex items-center justify-center font-mono text-xs z-10">
+                <span class="material-symbols-outlined text-[14px]" aria-hidden="true">cancel</span>
+              </div>
+              <div class="flex-1 bg-brand-surface border-2 border-brand-orange p-4">
+                <h3 class="text-xs font-mono font-bold text-brand-orange uppercase">// DISPATCH {{ order.status|upper }}</h3>
+                <p class="text-xs text-brand-muted mt-1">
+                  This dispatch has been {{ order.status }}. No further status updates will occur. Contact support for assistance.
+                </p>
+              </div>
+            </article>
+          {% endif %}
+        {% endwith %}
+
+      </div>
+
+      {# ── Contact Support CTA ─────────────────────────────────────────────── #}
+      <div class="mt-8 pt-6 border-t border-brand-border">
+        <a href="{% url 'pages:contact' %}"
+           class="inline-flex items-center gap-2 bg-brand-orange text-black font-mono text-xs uppercase tracking-widest font-bold px-6 py-3.5 hover:bg-[#FF6A1A] transition-colors min-h-[48px]"
+           aria-label="Contact dispatch support">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">support_agent</span>
+          CONTACT SUPPORT // DISPATCH
+        </a>
+      </div>
+    </section>
+
+    {# ── RIGHT: Manifest + Shipping + Payment ─────────────────────────────── #}
+    <aside class="lg:col-span-5 space-y-6 lg:sticky lg:top-24" aria-labelledby="manifest-heading">
+
+      {# ── Order Manifest ──────────────────────────────────────────────────── #}
+      <div class="bg-brand-surface border border-brand-border">
+        <div class="px-5 py-4 border-b border-brand-border">
+          <h3 id="manifest-heading" class="font-mono text-xs uppercase tracking-widest text-brand-orange font-bold">// ORDER MANIFEST</h3>
+        </div>
+        <div class="px-5 py-5 space-y-3">
+          <p class="font-mono text-[10px] uppercase tracking-widest text-brand-muted">{{ order_items|length }} ITEM{{ order_items|length|pluralize }} // REF {{ order.business_id }}</p>
+          <ul class="space-y-2">
+            {% for item in order_items %}
+              <li class="flex items-start justify-between gap-3 py-2 border-b border-brand-border/40 last:border-0">
+                <div class="min-w-0">
+                  <p class="font-mono text-[10px] uppercase tracking-widest text-brand-muted">{{ item.sku }}</p>
+                  <p class="font-mono text-sm text-brand-text truncate">{{ item.name|upper }}</p>
+                  <p class="font-mono text-[10px] text-brand-muted mt-0.5">QTY: {{ item.quantity }} × {{ item.unit_price|floatformat:2 }}</p>
+                </div>
+                <p class="font-mono text-sm text-brand-text whitespace-nowrap">{{ item.unit_price|floatformat:2 }}</p>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="px-5 py-4 border-t border-brand-border space-y-2 font-mono text-xs">
+          <div class="flex justify-between text-brand-muted">
+            <span>SUBTOTAL</span>
+            <span>{{ order.subtotal|floatformat:2 }} {{ order.currency }}</span>
+          </div>
+          <div class="flex justify-between text-brand-muted">
+            <span>SHIPPING</span>
+            <span>{{ order.shipping_cost|floatformat:2 }} {{ order.currency }}</span>
+          </div>
+          <div class="h-px bg-brand-border my-2"></div>
+          <div class="flex justify-between text-brand-text font-bold text-base">
+            <span>TOTAL</span>
+            <span class="text-brand-orange">{{ order.grand_total|floatformat:2 }} <span class="text-[10px] text-brand-muted">{{ order.currency }}</span></span>
+          </div>
+        </div>
+      </div>
+
+      {# ── Dispatch Coordinates ─────────────────────────────────────────── #}
+      <div class="bg-brand-surface border border-brand-border p-5">
+        <h3 class="font-mono text-xs uppercase tracking-widest text-brand-orange font-bold mb-3">// DESTINATION COORDINATES</h3>
+        <div class="space-y-3 font-mono text-xs">
+          {% if shipping_address %}
+            <div>
+              <p class="text-brand-muted uppercase tracking-wider mb-1">Recipient</p>
+              <p class="text-brand-text">{{ shipping_address.full_name|default:"—" }}</p>
+            </div>
+            <div>
+              <p class="text-brand-muted uppercase tracking-wider mb-1">Address</p>
+              <p class="text-brand-text">{{ shipping_address.address|default:"—" }}</p>
+              <p class="text-brand-text">{{ shipping_address.city|default:"" }} · {{ shipping_address.country|default:"" }}</p>
+            </div>
+            <div>
+              <p class="text-brand-muted uppercase tracking-wider mb-1">Phone (Dispatch PIN)</p>
+              <p class="text-brand-text">{{ shipping_address.phone|default:"—" }}</p>
+            </div>
+          {% else %}
+            <p class="text-brand-muted leading-relaxed">No shipping address attached.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Payment status ─────────────────────────────────────────────────── #}
+      {% if payment %}
+      <div class="bg-brand-surface border border-brand-border p-5">
+        <h3 class="font-mono text-xs uppercase tracking-widest text-brand-orange font-bold mb-3">// PAYMENT</h3>
+        <div class="grid grid-cols-2 gap-3 font-mono text-xs">
+          <div>
+            <p class="text-brand-muted uppercase tracking-wider">Method</p>
+            <p class="text-brand-text mt-1 uppercase">{{ payment.payment_method|default:payment.payment_provider|upper }}</p>
+          </div>
+          <div>
+            <p class="text-brand-muted uppercase tracking-wider">Status</p>
+            <p class="mt-1 {% if payment.status == 'paid' %}text-emerald-400{% elif payment.status == 'failed' %}text-brand-orange{% else %}text-brand-text{% endif %} uppercase font-bold">{{ payment.status|upper }}</p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+    </aside>
+  </div>
+</main>
+
+{# ── Footer ─────────────────────────────────────────────────────────────── #}
+<footer class="border-t border-brand-border bg-black py-6 px-4 md:px-6 text-center" role="contentinfo">
+  <p class="font-mono text-[10px] uppercase tracking-widest text-brand-muted">
+    © {% now "Y" %} PHINOX // RULE OF TWO // LIVE DISPATCH NODE
+  </p>
+</footer>
+{% endblock %}

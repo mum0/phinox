@@ -1,0 +1,15 @@
+{
+  "name": "phinox-frontend-build",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Tailwind CLI production build pipeline for PHINOX. Phase 6: replaces the CDN <script> tag with a compiled static/css/dist.css in production. Templates use a hybrid: CDN in dev (hot-reload) + dist.css in prod (no JS payload).",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/css/input.css -o ./static/css/dist.css --minify",
+    "watch:css": "tailwindcss -i ./static/css/input.css -o ./static/css/dist.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/container-queries": "^0.1.1"
+  }
+}

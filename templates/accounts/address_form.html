@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 2 helper (Address Create + Update form).
+Used by both AddressCreateView and AddressUpdateView (they share the
+same template_name). The view title changes via the ``object`` presence.
+
+Context:
+  - ``object``  — the ShippingAddress being edited (None on create).
+  - ``form``    — Django ModelForm (auto-rendered by Django CBV).
+{% endcomment %}
+
+{% block title %}{% if object %}PHINOX — Edit Hub{% else %}PHINOX — New Dispatch Hub{% endif %}{% endblock %}
+
+{% block body_class %}bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container{% endblock %}
+
+{% block body %}
+<header class="border-b border-outline-variant bg-surface-container-lowest sticky top-0 z-50" role="banner">
+  <div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop h-16 flex items-center justify-between">
+    <a href="{% url 'accounts:addresses' %}" class="flex items-center gap-2 font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors" aria-label="Return to addresses">
+      <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_back</span>
+      <span>RETURN // ADDRESSES</span>
+    </a>
+    <a href="{% url 'pages:home' %}" class="font-label-technical text-label-technical tracking-widest text-on-surface uppercase font-bold" aria-label="PHINOX home">PHINOX</a>
+    <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest hidden sm:inline">SECURE FORM // 256-GCM</span>
+  </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-margin-mobile md:px-margin-desktop py-12 flex-1">
+  <div class="mb-8">
+    <div class="flex items-center gap-2 font-label-technical text-label-technical text-primary uppercase tracking-widest mb-2">
+      <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+      <span>{% if object %}EDIT DISPATCH HUB{% else %}NEW DISPATCH HUB{% endif %}</span>
+    </div>
+    <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight">
+      {% if object %}EDIT HUB // {{ object.full_name|upper }}{% else %}NEW DISPATCH COORDINATES{% endif %}
+    </h1>
+  </div>
+
+  <form method="post" class="space-y-6 bg-surface-container-low p-gutter shadow-md">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="bg-error-container/30 border border-error text-on-error-container p-3 font-mono text-xs uppercase tracking-wider" role="alert">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    {% for field in form %}
+      <div class="space-y-2">
+        <label for="{{ field.id_for_label }}" class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest block">
+          {{ field.label }}
+          {% if field.field.required %}<span class="text-primary" aria-hidden="true">*</span>{% endif %}
+        </label>
+        {{ field }}
+        {% if field.errors %}
+          <p class="text-error font-mono text-[11px] uppercase tracking-wider mt-1" role="alert">
+            {{ field.errors|join:" // " }}
+          </p>
+        {% endif %}
+        {% if field.help_text %}
+          <p class="font-label-sm text-label-sm text-on-surface-variant">{{ field.help_text }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-outline-variant">
+      <button type="submit"
+              class="bg-primary text-on-primary font-label-technical text-label-technical uppercase tracking-widest font-bold px-6 py-3.5 hover:opacity-90 transition-opacity min-h-[48px] flex items-center gap-2 justify-center">
+        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">save</span>
+        SAVE HUB
+      </button>
+      <a href="{% url 'accounts:addresses' %}"
+         class="border border-outline-variant text-on-surface-variant font-label-technical text-label-technical uppercase tracking-widest py-3.5 px-6 hover:border-primary hover:text-primary transition-colors text-center min-h-[48px] flex items-center justify-center">
+        CANCEL
+      </a>
+    </div>
+  </form>
+
+  {% comment %}Inline minimal style — Django renders fields as raw HTML
+  elements; we wrap them in tech-input styling to match Stitch brand.{% endcomment %}
+  <style>
+    input[type="text"], input[type="tel"], input[type="email"], input[type="number"], textarea, select {
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      color: #e3e2e2;
+      padding: 12px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      border-radius: 0;
+      width: 100%;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: #E85D04;
+      outline: 2px solid #E85D04;
+      outline-offset: 0;
+    }
+    input[type="checkbox"] {
+      width: auto;
+      accent-color: #E85D04;
+    }
+    select { appearance: none; -webkit-appearance: none; padding-right: 32px;
+             background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e3e2e2'><path d='M7 10l5 5 5-5z'/></svg>");
+             background-repeat: no-repeat; background-position: right 8px center; }
+  </style>
+</main>
+
+<footer class="border-t border-outline-variant bg-surface-container-lowest py-6 px-margin-mobile md:px-margin-desktop text-center" role="contentinfo">
+  <p class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest">
+    © {% now "Y" %} PHINOX // RULE OF TWO
+  </p>
+</footer>
+{% endblock %}

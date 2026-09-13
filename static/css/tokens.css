@@ -1,0 +1,72 @@
+/*
+ * PHINOX design tokens as CSS custom properties.
+ * Two families are kept SEPARATE and un-merged on purpose — see
+ * IMPLEMENTATION_PLAN.md §1 / §6.3 and open question #5. This file does not
+ * decide which family is canonical; it just makes both inspectable/usable
+ * outside the Tailwind CDN config blocks embedded per-shell.
+ */
+
+:root {
+  /* Shared surface/on-surface palette — confirmed identical across ALL
+     shipped pages regardless of token family. This is the REAL color system;
+     the prose "Matte Black / Warm White / Brushed Titanium" palette in the
+     DESIGN.md files does not match these shipped hex values. */
+  --surface: #121414;
+  --surface-dim: #121414;
+  --surface-bright: #38393a;
+  --surface-container-lowest: #0d0e0f;
+  --surface-container-low: #1a1c1c;
+  --surface-container: #1e2020;
+  --surface-container-high: #292a2a;
+  --surface-container-highest: #343535;
+  --surface-variant: #343535;
+  --on-surface: #e3e2e2;
+  --on-surface-variant: #c4c7c7;
+  --outline: #8e9192;
+  --outline-variant: #444748;
+  --primary: #c8c6c5;
+  --on-primary: #313030;
+  --primary-container: #0f0f0f;
+  --tertiary: #ffb596;
+  --on-tertiary: #581e00;
+  --tertiary-container: #210700;
+  --background: #121414;
+  --on-background: #e3e2e2;
+
+  /* Literal "true" fire orange — hardcoded directly in 404/Contact markup,
+     named explicitly `fire-orange` only in the Checkout (Family A) config. */
+  --fire-orange: #E85D04;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Family A — "Commerce / v4.0" (Checkout)                                */
+/* ---------------------------------------------------------------------- */
+:root {
+  --a-font-display: "Archivo Narrow", sans-serif;
+  --a-font-mono: "JetBrains Mono", monospace;
+  --a-margin-mobile: 16px;
+  --a-margin-desktop: 40px;
+  --a-touch-target-min: 48px;
+  --a-radius: 0px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Family B — "Editorial / V3.5" (404, Contact)                           */
+/* ---------------------------------------------------------------------- */
+:root {
+  --b-font-display: "Archivo Narrow", sans-serif;
+  --b-font-mono: "JetBrains Mono", monospace;
+  --b-font-body: "Hanken Grotesk", sans-serif;
+  --b-margin-mobile: 20px;
+  --b-margin-desktop: 64px;
+  /* NOTE: touch-target-min is referenced in Family-B markup but undefined in
+     both Family-B source configs. Defaulting to Family A's 48px here so
+     dock height renders sanely — flagged in plan §5 Q7 for confirmation. */
+  --b-touch-target-min: 48px;
+  /* NOTE: radius is INCONSISTENT between 404 (0.25rem/0.5rem/0.75rem) and
+     Contact (0px) within Family B itself. Defaulting to 0px (Contact's
+     value, matching the brand's own "strictly 0px" rule) — flagged in plan
+     §5 Q6, not silently resolved in the ported templates themselves (each
+     page's own Tailwind config block still governs its actual render). */
+  --b-radius: 0px;
+}

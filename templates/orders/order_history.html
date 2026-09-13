@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 2 / Page 3 (Order History).
+Source: Stitch "Client Profile Order Archive Account" page — we adapt
+the order archive section as a standalone list (per Phase 2 spec).
+
+Context provided by OrderHistoryView (LoginRequiredMixin + ListView):
+  - ``orders`` — queryset of the user's Order rows, ordered by
+    -created_at (newest first). Prefetches items + payments.
+
+Per AGENTS.md §6: order status is forward-only (PENDING → CONFIRMED →
+PROCESSING → SHIPPED → DELIVERED; CANCELLED + REFUNDED are terminal
+side-states).
+{% endcomment %}
+
+{% block title %}PHINOX — Order Archive{% endblock %}
+
+{% block body_class %}bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container{% endblock %}
+
+{% block body %}
+<header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.6)]" role="banner">
+  <div class="h-16 max-w-[1440px] mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a class="flex items-center gap-3 group" href="{% url 'pages:home' %}" aria-label="PHINOX home">
+        <span class="font-label-technical text-label-technical tracking-widest text-on-surface uppercase font-bold">PHINOX</span>
+      </a>
+    </div>
+    <nav class="hidden md:flex items-center gap-gutter" aria-label="Account navigation">
+      <a class="font-label-technical text-label-technical uppercase tracking-widest px-unit py-unit text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" href="{% url 'accounts:profile' %}">ACCOUNT</a>
+      <a aria-current="page" class="font-label-technical uppercase tracking-widest px-unit py-unit transition-all text-on-surface bg-surface-container-high" href="{% url 'orders_mgmt:history' %}">ORDERS</a>
+      <a class="font-label-technical text-label-technical uppercase tracking-widest px-unit py-unit text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" href="{% url 'catalog:product_list' %}">SHOP</a>
+    </nav>
+    <div class="flex items-center gap-gutter">
+      <a href="{% url 'accounts:profile' %}" class="flex items-center gap-unit text-on-surface-variant hover:text-primary transition-colors" aria-label="Return to profile">
+        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_back</span>
+        <span class="hidden sm:inline font-label-sm text-label-sm uppercase tracking-wider">PROFILE</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="w-full pt-16 bg-surface min-h-screen">
+  {# ── Page header ────────────────────────────────────────────────────────── #}
+  <div class="w-full bg-surface-container-lowest py-8 shadow-sm">
+    <div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-gutter">
+        <div class="space-y-unit">
+          <div class="flex items-center gap-gutter">
+            <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+            <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">DISPATCH LEDGER // ALL TRANSACTIONS</span>
+          </div>
+          <p class="font-headline-lg text-headline-lg uppercase text-on-surface tracking-tight">ORDER ARCHIVE</p>
+          <p class="font-body-md text-body-md text-on-surface-variant mt-2">
+            {% if orders %}
+              {{ orders|length }} dispatch{{ orders|length|pluralize }} on record · newest first
+            {% else %}
+              No dispatches logged yet.
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Order list ─────────────────────────────────────────────────────── #}
+  <div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-12 w-full">
+
+    {% if orders %}
+      <div class="bg-surface-container-low shadow-md divide-y divide-outline-variant">
+
+        {# ── Column header (desktop) ─────────────────────────────────────── #}
+        <div class="hidden md:grid grid-cols-[140px_1fr_140px_140px_180px] gap-gutter p-gutter font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest" role="row" aria-hidden="true">
+          <span role="columnheader">ORDER REF</span>
+          <span role="columnheader">ITEMS // DISPATCH PAYLOAD</span>
+          <span role="columnheader">PLACED</span>
+          <span role="columnheader">STATUS</span>
+          <span role="columnheader" class="text-right">TOTAL</span>
+        </div>
+
+        {% for order in orders %}
+          <article class="md:grid md:grid-cols-[140px_1fr_140px_140px_180px] gap-gutter p-gutter hover:bg-surface-container transition-colors" role="row" aria-labelledby="order-{{ order.business_id }}-ref">
+            <div class="flex flex-col">
+              <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">ORDER REF</span>
+              <span id="order-{{ order.business_id }}-ref" class="font-label-technical text-label-technical text-primary uppercase mt-unit">{{ order.business_id }}</span>
+            </div>
+
+            <div class="flex flex-col mt-3 md:mt-0">
+              <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">DISPATCH PAYLOAD</span>
+              <p class="font-label-technical text-label-technical text-on-surface mt-unit truncate">
+                {% with items_count=order.items.count %}
+                  {{ items_count }} item{{ items_count|pluralize }}
+                  {% if items_count %}
+                    · {{ order.items.first.name|truncatechars:40 }}{% if items_count > 1 %} +{{ items_count|add:"-1" }} more{% endif %}
+                  {% else %}
+                    · (empty)
+                  {% endif %}
+                {% endwith %}
+              </p>
+            </div>
+
+            <div class="flex flex-col mt-3 md:mt-0">
+              <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">PLACED</span>
+              <span class="font-label-technical text-label-technical text-on-surface mt-unit">{{ order.created_at|date:"Y-m-d" }}</span>
+              <span class="font-label-sm text-label-sm text-on-surface-variant">{{ order.created_at|date:"H:i" }} CLT</span>
+            </div>
+
+            <div class="flex flex-col mt-3 md:mt-0">
+              <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">STATUS</span>
+              {% if order.status == 'delivered' %}
+                <span class="inline-flex items-center gap-1 text-emerald-400 font-label-technical text-label-technical uppercase mt-unit">
+                  <span class="material-symbols-outlined text-[14px]" aria-hidden="true">check_circle</span>
+                  {{ order.status|upper }}
+                </span>
+              {% elif order.status == 'cancelled' or order.status == 'refunded' %}
+                <span class="inline-flex items-center gap-1 text-error font-label-technical text-label-technical uppercase mt-unit">
+                  <span class="material-symbols-outlined text-[14px]" aria-hidden="true">cancel</span>
+                  {{ order.status|upper }}
+                </span>
+              {% elif order.status == 'shipped' %}
+                <span class="inline-flex items-center gap-1 text-primary font-label-technical text-label-technical uppercase mt-unit">
+                  <span class="material-symbols-outlined text-[14px]" aria-hidden="true">local_shipping</span>
+                  {{ order.status|upper }}
+                </span>
+              {% else %}
+                <span class="inline-flex items-center gap-1 text-primary font-label-technical text-label-technical uppercase mt-unit">
+                  <span class="material-symbols-outlined text-[14px]" aria-hidden="true">sync</span>
+                  {{ order.status|upper }}
+                </span>
+              {% endif %}
+              <span class="font-label-sm text-label-sm text-on-surface-variant mt-1">PAYMENT: {{ order.payment_status|upper }}</span>
+            </div>
+
+            <div class="mt-3 md:mt-0 flex flex-col md:items-end gap-2">
+              <div>
+                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest md:text-right block">TOTAL</span>
+                <span class="font-label-technical text-label-technical text-primary uppercase font-bold mt-unit block">{{ order.grand_total|floatformat:2 }} {{ order.currency }}</span>
+              </div>
+              <div class="flex md:justify-end gap-2">
+                <a href="{% url 'orders_mgmt:detail' business_id=order.business_id %}"
+                   class="bg-primary text-on-primary font-label-technical text-label-technical uppercase tracking-widest font-bold px-4 py-2 hover:opacity-90 transition-opacity min-h-[36px] inline-flex items-center">
+                  VIEW →
+                </a>
+                <a href="{% url 'orders_mgmt:tracking' business_id=order.business_id %}"
+                   class="border border-outline-variant text-on-surface-variant font-label-technical text-label-technical uppercase tracking-widest px-4 py-2 hover:border-primary hover:text-primary transition-colors min-h-[36px] inline-flex items-center">
+                  TRACK
+                </a>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+
+      </div>
+    {% else %}
+      {# ── Empty state ────────────────────────────────────────────────────── #}
+      <div class="border border-outline-variant bg-surface-container-low p-gutter sm:p-12 lg:p-16 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 border-2 border-outline-variant mb-4" aria-hidden="true">
+          <span class="material-symbols-outlined text-outline text-[36px]">inventory_2</span>
+        </div>
+        <p class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface mb-3">NO DISPATCHES ON RECORD</p>
+        <p class="font-body-md text-body-md text-on-surface-variant mb-8 max-w-md mx-auto">
+          You haven't placed any orders yet. Browse the catalog and dispatch your first piece — it'll show up here.
+        </p>
+        <a href="{% url 'catalog:product_list' %}"
+           class="inline-block bg-primary text-on-primary font-label-technical text-label-technical uppercase tracking-widest font-bold px-8 py-3.5 hover:opacity-90 transition-opacity min-h-[48px]"
+           aria-label="Browse products">
+          BROWSE PRODUCTS →
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+</main>
+
+{# ── Footer ───────────────────────────────────────────────────────────── #}
+<footer class="w-full px-margin-mobile md:px-margin-desktop bg-surface-container-lowest border-t border-outline-variant py-6 text-center" role="contentinfo">
+  <p class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest">
+    © {% now "Y" %} PHINOX // RULE OF TWO // ALEXANDRIA
+  </p>
+</footer>
+{% endblock %}

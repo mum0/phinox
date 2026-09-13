@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 2 / Page 7 (Wishlist Vault).
+Source: stitch_phinox_architectural_luxury_e_commerce/phinox_wishlist_archive_wishlist_desktop/code.html
+
+Context provided by WishlistView (LoginRequiredMixin + ListView):
+  - ``wishlist_items`` — queryset of WishlistItem for the requesting
+    user, with product__category and variant prefetched.
+
+Per AGENTS.md §6 (Wishlist): "Optional variant pin: user can save a
+product (any variant) or a specific variant. Both are valid. Unique per
+user/product/variant (DB constraint)."
+
+Each wishlist card renders:
+  - Product image (first ProductImage if any, else placeholder)
+  - Product name + SKU
+  - Base price + currency
+  - "ADD TO CART" CTA → POST to ``{% url 'cart:add_to_cart' %}`` with
+    the saved variant_id (or first active variant if none pinned)
+  - "REMOVE" CTA → POST to ``{% url 'wishlist:remove' %}`` with item_id
+{% endcomment %}
+
+{% block title %}PHINOX — Wishlist Vault{% endblock %}
+
+{% block body_class %}bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container{% endblock %}
+
+{% block body %}
+{# ── Top Bar (consistent with About/Profile pages) ───────────────────────── #}
+<header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.6)]" role="banner">
+  <div class="h-20 max-w-[1440px] mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between">
+    <div class="flex items-center gap-gutter">
+      <a class="flex items-center gap-gutter" href="{% url 'pages:home' %}" aria-label="PHINOX home">
+        <div class="flex flex-col">
+          <span class="font-label-technical text-label-technical tracking-widest text-on-surface uppercase font-bold">PHINOX</span>
+          <span class="font-label-sm text-label-sm text-outline tracking-widest uppercase">SYS // 02</span>
+        </div>
+      </a>
+    </div>
+    <nav class="hidden lg:flex items-center gap-gutter" aria-label="Primary navigation">
+      <a class="font-label-technical text-label-technical uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors" href="{% url 'catalog:product_list' %}">SHOP</a>
+      <a aria-current="page" class="uppercase tracking-widest transition-colors text-primary font-bold" href="{% url 'wishlist:list' %}">WISHLIST</a>
+      <a class="font-label-technical text-label-technical uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors" href="{% url 'accounts:profile' %}">ACCOUNT</a>
+    </nav>
+    <div class="flex items-center gap-gutter">
+      <a class="relative flex items-center justify-center p-2 text-on-surface hover:text-primary transition-colors min-h-[48px]" href="{% url 'cart:cart' %}" aria-label="Shopping cart">
+        <span class="material-symbols-outlined text-[22px]" aria-hidden="true">shopping_bag</span>
+      </a>
+      <div class="w-8 h-8 bg-primary flex items-center justify-center" aria-hidden="true">
+        <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="w-full pt-20 bg-background min-h-screen">
+  {# ── Status strip ────────────────────────────────────────────────────────── #}
+  <div class="w-full bg-surface-container-lowest py-3 px-margin-mobile lg:px-margin-desktop">
+    <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="w-2 h-2 bg-primary animate-pulse" aria-hidden="true"></span>
+        <span class="font-label-technical text-label-technical text-primary uppercase tracking-widest">SYS_STATUS: VAULT_OPEN // AUTHORIZED</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">VAULT INVENTORY:</span>
+        <span class="font-label-technical text-label-technical text-primary uppercase font-bold">{{ wishlist_items|length }} ITEM{{ wishlist_items|length|pluralize }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full bg-surface-container-lowest py-12 px-margin-mobile lg:px-margin-desktop border-b border-outline-variant">
+    <div class="max-w-[1440px] mx-auto">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-gutter">
+        <div>
+          <p class="font-label-technical text-label-technical text-primary uppercase tracking-widest mb-3">// SAVED ARCHIVE // WISHLIST VAULT</p>
+          <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight">WISHLIST VAULT</h1>
+          <p class="font-body-md text-body-md text-on-surface-variant mt-3 max-w-md">
+            Curated pieces awaiting your dispatch command. Save to vault, return later, dispatch when ready.
+          </p>
+        </div>
+        <a href="{% url 'catalog:product_list' %}" class="self-start md:self-auto bg-primary text-on-primary font-label-technical text-label-technical uppercase tracking-widest font-bold px-6 py-3.5 hover:opacity-90 transition-opacity min-h-[48px] inline-flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">add</span>
+          EXPLORE ARCHIVE
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {# ── Wishlist items grid ─────────────────────────────────────────────── #}
+  <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin-desktop py-12 w-full">
+
+    {% if wishlist_items %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter" role="list">
+
+        {% for item in wishlist_items %}
+          {% with product=item.product variant=item.variant %}
+            <article class="bg-surface-container-low flex flex-col group relative" role="listitem" aria-labelledby="wish-{{ item.pk }}-name">
+              {# ── Image ─────────────────────────────────────────────────── #}
+              <a href="{% url 'catalog:product_detail' slug=product.slug %}" class="block aspect-square bg-surface-container overflow-hidden relative" aria-label="View {{ product.name }}">
+                {% with first_image=product.images.first %}
+                  {% if first_image %}
+                    <img src="{{ first_image.image.url }}"
+                         alt="{{ first_image.alt_text|default:product.name }}"
+                         loading="lazy"
+                         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                  {% else %}
+                    <img src="{% static 'images/stitch/phinox_wishlist_archive_wishlist_desktop/00.jpg' %}"
+                         alt="{{ product.name }}"
+                         loading="lazy"
+                         class="w-full h-full object-cover grayscale opacity-70">
+                  {% endif %}
+                {% endwith %}
+                <span class="absolute top-2 left-2 bg-surface-container-lowest/90 px-2 py-1 font-label-sm text-label-sm text-primary uppercase tracking-widest">
+                  {{ product.business_id }}
+                </span>
+              </a>
+
+              {# ── Card body ────────────────────────────────────────────── #}
+              <div class="p-gutter flex flex-col flex-1">
+                <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-1">{{ product.category.name|upper }}</p>
+                <h3 id="wish-{{ item.pk }}-name" class="font-headline-lg text-[20px] text-on-surface uppercase tracking-tight leading-tight mb-2">
+                  <a href="{% url 'catalog:product_detail' slug=product.slug %}" class="hover:text-primary transition-colors">
+                    {{ product.name|upper }}
+                  </a>
+                </h3>
+                {% if variant %}
+                  <p class="font-label-technical text-label-technical text-on-surface-variant mb-3">
+                    VARIANT: {{ variant.sku }}{% if variant.name %} · {{ variant.name }}{% endif %}
+                  </p>
+                {% else %}
+                  <p class="font-label-technical text-label-technical text-on-surface-variant mb-3">
+                    VARIANT: ANY (DEFAULT)
+                  </p>
+                {% endif %}
+
+                <div class="flex items-center justify-between mt-auto pt-4 border-t border-outline-variant">
+                  <div>
+                    <p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Base Price</p>
+                    <p class="font-label-technical text-label-technical text-primary font-bold text-lg mt-1">{{ product.base_price|floatformat:2 }} <span class="text-[10px] text-on-surface-variant">{{ product.currency }}</span></p>
+                  </div>
+                  <p class="font-label-sm text-label-sm text-on-surface-variant uppercase">
+                    Saved<br>
+                    <span class="font-label-technical text-label-technical text-on-surface-variant">{{ item.created_at|date:"M j" }}</span>
+                  </p>
+                </div>
+
+                {# ── Actions ─────────────────────────────────────────────── #}
+                <div class="flex flex-col gap-2 mt-4">
+                  <form method="post" action="{% url 'cart:add_to_cart' %}" class="block">
+                    {% csrf_token %}
+                    <input type="hidden" name="variant_id" value="{% if variant %}{{ variant.pk }}{% else %}{{ product.variants.first.pk|default:'' }}{% endif %}">
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit"
+                            class="w-full bg-primary text-on-primary font-label-technical text-label-technical uppercase tracking-widest font-bold py-3 hover:opacity-90 transition-opacity min-h-[48px] flex items-center justify-center gap-2">
+                      <span class="material-symbols-outlined text-[16px]" aria-hidden="true">add_shopping_cart</span>
+                      ADD TO CART
+                    </button>
+                  </form>
+                  <form method="post" action="{% url 'wishlist:remove' %}" class="block">
+                    {% csrf_token %}
+                    <input type="hidden" name="item_id" value="{{ item.pk }}">
+                    <button type="submit"
+                            class="w-full border border-outline-variant text-on-surface-variant font-label-technical text-label-technical uppercase tracking-widest py-2.5 hover:border-primary hover:text-primary transition-colors min-h-[40px] flex items-center justify-center gap-2"
+                            aria-label="Remove {{ product.name }} from wishlist">
+                      <span class="material-symbols-outlined text-[14px]" aria-hidden="true">close</span>
+                      REMOVE
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </article>
+          {% endwith %}
+        {% endfor %}
+
+      </div>
+    {% else %}
+      {# ── Empty state ────────────────────────────────────────────────────── #}
+      <div class="border border-outline-variant bg-surface-container-low p-gutter sm:p-12 lg:p-16 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 border-2 border-outline-variant mb-4" aria-hidden="true">
+          <span class="material-symbols-outlined text-outline text-[36px]">favorite</span>
+        </div>
+        <p class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface mb-3">VAULT IS EMPTY</p>
+        <p class="font-body-md text-body-md text-on-surface-variant mb-8 max-w-md mx-auto">
+          You haven't saved anything yet. Browse the archive and tap the heart on any piece to add it to your vault — it'll wait here for your dispatch command.
+        </p>
+        <a href="{% url 'catalog:product_list' %}"
+           class="inline-block bg-primary text-on-primary font-label-technical text-label-technical uppercase tracking-widest font-bold px-8 py-3.5 hover:opacity-90 transition-opacity min-h-[48px]"
+           aria-label="Browse products">
+          EXPLORE ARCHIVE →
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+</main>
+
+{# ── Footer ───────────────────────────────────────────────────────────── #}
+<footer class="w-full px-margin-mobile md:px-margin-desktop bg-surface-container-lowest border-t border-outline-variant py-6 text-center" role="contentinfo">
+  <p class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest">
+    © {% now "Y" %} PHINOX // RULE OF TWO // VAULT NODE
+  </p>
+</footer>
+{% endblock %}

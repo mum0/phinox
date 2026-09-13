@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 2 / Page 1 (Profile).
+Source: stitch_phinox_architectural_luxury_e_commerce/phinox_client_profile_order_archive_account_desktop/code.html
+
+Phase 2 status: STUB VIEW (ProfileStubView).
+  - LoginRequiredMixin so the page reads request.user.
+  - The page renders the Stitch "Client Archive & Profile" design using
+    the currently-logged-in user's basic fields (customer_id, username,
+    email, phone, date_joined).
+  - Cards that need real backend wiring (VIP tier, payment tokens, body
+    sizing matrix, dispatch telemetry) are rendered as visible
+    placeholders — Phase 5+ will populate them with real data when auth +
+    payment-token storage + profile editing are wired.
+
+Context variables provided by ProfileStubView:
+  - ``profile_user``        — the request.user
+  - ``customer_id``         — e.g. "PHX-CUS-000001" (or "—" if blank)
+  - ``node_initiation``    — user.date_joined formatted "MONTH YYYY"
+{% endcomment %}
+
+{% block title %}PHINOX — Client Archive & Profile{% endblock %}
+
+{% block extra_head %}
+<style>
+  .stitch-section { opacity: 0; transition: opacity 600ms ease; }
+  .stitch-section.is-visible { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    .stitch-section { opacity: 1; }
+  }
+</style>
+{% endblock %}
+
+{% block body_class %}bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container{% endblock %}
+
+{% block body %}
+{# ── Top Bar (Stitch bespoke) ────────────────────────────────────────────── #}
+<header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.6)]" role="banner">
+  <div class="h-16 max-w-[1440px] mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a class="flex items-center gap-3 group" href="{% url 'pages:home' %}" aria-label="PHINOX home">
+        <span class="font-label-technical text-label-technical tracking-widest text-on-surface uppercase font-bold">PHINOX</span>
+      </a>
+      <div class="hidden xl:flex items-center gap-unit px-unit py-0 bg-surface-container-low">
+        <span class="w-1.5 h-1.5 bg-primary inline-block" aria-hidden="true"></span>
+        <span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">SYS_STATUS: OPERATIONAL [Alexandria_Node_31.2001N]</span>
+      </div>
+    </div>
+    <nav class="hidden md:flex items-center gap-gutter" aria-label="Profile navigation">
+      <a class="font-label-technical text-label-technical uppercase tracking-widest px-unit py-unit text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" href="{% url 'catalog:product_list' %}">SHOP</a>
+      <a class="font-label-technical text-label-technical uppercase tracking-widest px-unit py-unit text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" href="{% url 'orders_mgmt:history' %}">ORDERS</a>
+      <a aria-current="page" class="font-label-technical uppercase tracking-widest px-unit py-unit transition-all text-on-surface bg-surface-container-high" href="{% url 'accounts:profile' %}">ACCOUNT</a>
+    </nav>
+    <div class="flex items-center gap-gutter">
+      <div class="hidden sm:flex items-center gap-unit bg-surface-container-low px-gutter py-unit">
+        <span class="font-label-sm text-label-sm text-primary uppercase">ENCRYPTION: 256-GCM</span>
+      </div>
+      <div class="w-8 h-8 bg-primary-container flex items-center justify-center">
+        <span class="material-symbols-outlined text-on-primary-container text-[18px]" aria-hidden="true">person</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="w-full pt-16 bg-surface min-h-screen">
+  {# ── Page header ────────────────────────────────────────────────────────── #}
+  <div class="w-full bg-surface-container-lowest py-8 shadow-sm">
+    <div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-gutter">
+        <div class="space-y-unit">
+          <div class="flex items-center gap-gutter">
+            <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+            <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">TERMINAL ARCHIVE // AUTHORIZED SESSION [NODE: ALEXANDRIA-EG-01]</span>
+          </div>
+          <p class="font-headline-lg text-headline-lg uppercase text-on-surface tracking-tight">PHINOX // CLIENT ARCHIVE &amp; PROFILE</p>
+        </div>
+        <div class="flex items-center gap-unit bg-surface-container-high px-gutter py-2 self-start md:self-auto">
+          <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">SECURITY_ENCLAVE:</span>
+          <span class="font-label-technical text-label-technical text-primary uppercase">ACTIVE_GCM_256</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-gutter mt-8 pt-8 bg-surface-container-low p-gutter">
+        <div class="flex flex-col">
+          <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">CLIENT IDENTIFIER</span>
+          <span class="font-label-technical text-label-technical text-on-surface uppercase mt-unit">{{ customer_id }}</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">CLEARANCE STATUS</span>
+          <span class="font-label-technical text-label-technical text-primary uppercase mt-unit">REGISTERED OPERATIVE</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">NODE INITIATION</span>
+          <span class="font-label-technical text-label-technical text-on-surface uppercase mt-unit">{{ node_initiation }}</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">GEO COORDINATES</span>
+          <span class="font-label-technical text-label-technical text-on-surface uppercase mt-unit">ALEXANDRIA // EGYPT [30.0131° N]</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Main grid: profile cards (left) + order archive + payment/sizing (right) ── #}
+  <div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-12 w-full">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+
+      {# ── LEFT: Identity + Sizing Matrix ─────────────────────────────────── #}
+      <aside class="lg:col-span-4 flex flex-col gap-gutter" aria-labelledby="ident-heading">
+        <div class="bg-surface-container-low p-gutter shadow-md relative overflow-hidden group">
+          <div class="absolute top-0 left-0 w-1 h-full bg-primary" aria-hidden="true"></div>
+          <div class="flex items-center justify-between mb-6">
+            <span id="ident-heading" class="font-label-technical text-label-technical text-primary uppercase tracking-widest">[ID_01] IDENT</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">OPERATIVE</span>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">SUBJECT OPERATIVE</span>
+              <span class="font-headline-lg text-[22px] leading-tight text-on-surface uppercase tracking-tight block">{{ profile_user.get_full_name|default:profile_user.username|upper }}</span>
+            </div>
+            <div class="space-y-1">
+              <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">TRANSMISSION LINK</span>
+              <span class="font-label-technical text-label-technical text-on-surface block">{{ profile_user.email|default:"—" }}</span>
+              <span class="font-label-technical text-label-technical text-on-surface-variant block">{{ profile_user.phone|default:"—" }}</span>
+            </div>
+          </div>
+        </div>
+
+        {# ── Account Actions ─────────────────────────────────────────────── #}
+        <div class="bg-surface-container-low p-gutter shadow-md">
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-label-technical text-label-technical text-primary uppercase tracking-widest">[ID_04] ACCOUNT ACTIONS</span>
+            <span class="material-symbols-outlined text-primary text-[16px]" aria-hidden="true">manage_accounts</span>
+          </div>
+          <nav class="space-y-2" aria-label="Account actions">
+            <a href="{% url 'accounts:addresses' %}" class="flex items-center justify-between p-3 bg-surface-container hover:bg-surface-container-high transition-colors group">
+              <span class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-[18px]" aria-hidden="true">pin_drop</span>
+                <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">ADDRESSES</span>
+              </span>
+              <span class="material-symbols-outlined text-on-surface-variant text-[18px] group-hover:text-primary transition-colors" aria-hidden="true">arrow_forward</span>
+            </a>
+            <a href="{% url 'orders_mgmt:history' %}" class="flex items-center justify-between p-3 bg-surface-container hover:bg-surface-container-high transition-colors group">
+              <span class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-[18px]" aria-hidden="true">inventory_2</span>
+                <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">ORDER HISTORY</span>
+              </span>
+              <span class="material-symbols-outlined text-on-surface-variant text-[18px] group-hover:text-primary transition-colors" aria-hidden="true">arrow_forward</span>
+            </a>
+            <a href="{% url 'wishlist:list' %}" class="flex items-center justify-between p-3 bg-surface-container hover:bg-surface-container-high transition-colors group">
+              <span class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-[18px]" aria-hidden="true">favorite</span>
+                <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">WISHLIST VAULT</span>
+              </span>
+              <span class="material-symbols-outlined text-on-surface-variant text-[18px] group-hover:text-primary transition-colors" aria-hidden="true">arrow_forward</span>
+            </a>
+
+            {% comment %}Phase 5 STITCH-INTEGRATION: real logout.
+               POSTs to accounts:logout, which calls Django auth.logout
+               and redirects to LOGOUT_REDIRECT_URL (accounts:login).
+               POST-only per Django convention to prevent CSRF on logout.{% endcomment %}
+            <form method="post" action="{% url 'accounts:logout' %}" class="block">
+              {% csrf_token %}
+              <button type="submit"
+                      class="w-full flex items-center justify-between p-3 bg-surface-container hover:bg-surface-container-high transition-colors group border-0 cursor-pointer"
+                      aria-label="Log out">
+                <span class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-primary text-[18px]" aria-hidden="true">logout</span>
+                  <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">DISCONNECT NODE</span>
+                </span>
+                <span class="material-symbols-outlined text-on-surface-variant text-[18px] group-hover:text-primary transition-colors" aria-hidden="true">arrow_forward</span>
+              </button>
+            </form>
+          </nav>
+          <p class="font-label-sm text-label-sm text-on-surface-variant uppercase mt-4 pt-4 border-t border-outline-variant">
+            PHASE 5 AUTH ACTIVE // LOGOUT VIA accounts:logout
+          </p>
+        </div>
+      </aside>
+
+      {# ── RIGHT: Order Archive (order history mini-list) + Payment protocol ─ #}
+      <section class="lg:col-span-8 space-y-gutter" aria-labelledby="archive-heading">
+        {# ── Order Archive Header ─────────────────────────────────────────── #}
+        <div class="bg-surface-container-low p-gutter shadow-md">
+          <div class="flex items-center justify-between mb-6 pb-4 border-b border-outline-variant">
+            <h2 id="archive-heading" class="font-headline-lg text-[22px] text-on-surface uppercase tracking-tight">ORDER ARCHIVE</h2>
+            <a href="{% url 'orders_mgmt:history' %}" class="font-label-technical text-label-technical text-primary uppercase tracking-widest hover:underline">
+              VIEW ALL →
+            </a>
+          </div>
+          <p class="font-body-md text-body-md text-on-surface-variant">
+            Visit the full <a href="{% url 'orders_mgmt:history' %}" class="text-primary underline">order history archive</a> to view all dispatches, statuses, and tracking telemetry for your account.
+          </p>
+        </div>
+
+        {# ── Payment Protocol (placeholder — Phase 5 will wire Paymob saved tokens) #}
+        <div class="bg-surface-container-low p-gutter shadow-md">
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-label-technical text-label-technical text-primary uppercase tracking-widest">[ID_02] SETTLEMENT PROTOCOL</span>
+            <span class="material-symbols-outlined text-on-surface-variant text-[16px]" aria-hidden="true">lock</span>
+          </div>
+          <div class="space-y-3">
+            <div class="bg-surface-container p-gutter flex items-center justify-between border border-outline-variant">
+              <div class="space-y-unit">
+                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">PAYMOB SAVED TOKEN</span>
+                <p class="font-label-technical text-label-technical text-on-surface-variant tracking-wider">// PHASE 5 — NOT YET LINKED</p>
+              </div>
+              <span class="font-label-sm text-label-sm text-on-surface-variant uppercase bg-surface-container-high px-2 py-1">PENDING</span>
+            </div>
+            <div class="bg-surface-container p-gutter flex items-center justify-between border border-outline-variant">
+              <div class="space-y-unit">
+                <div class="flex items-center gap-unit">
+                  <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest font-bold">valU</span>
+                  <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">LINKED ACCOUNT</span>
+                </div>
+                <p class="font-label-technical text-label-technical text-on-surface-variant">// PHASE 5 — NOT YET LINKED</p>
+              </div>
+              <span class="font-label-sm text-label-sm text-on-surface-variant uppercase bg-surface-container-high px-2 py-1">PENDING</span>
+            </div>
+          </div>
+        </div>
+
+        {# ── Manifesto quote ─────────────────────────────────────────────── #}
+        <div class="bg-surface-container-low p-gutter shadow-md">
+          <div class="flex items-center gap-2 font-label-technical text-label-technical text-primary uppercase tracking-widest mb-3">
+            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">menu_book</span>
+            MANIFESTO // RULE OF TWO
+          </div>
+          <p class="font-body-md text-body-md text-on-surface leading-relaxed italic">
+            "Discipline is the bridge between goals and accomplishment. In the Rule of Two, we find the convergence of function and form."
+          </p>
+          <a href="{% url 'pages:about' %}" class="inline-block mt-4 font-label-technical text-label-technical text-primary uppercase tracking-widest hover:underline">
+            READ THE MANIFESTO →
+          </a>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  {# ── Footer ───────────────────────────────────────────────────────────── #}
+  <footer class="w-full py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-lowest border-t border-outline-variant flex flex-col md:flex-row justify-between items-start gap-gutter" role="contentinfo">
+    <div class="space-y-6">
+      <h2 class="font-display-xl text-[40px] text-on-surface uppercase font-black">PHINOX</h2>
+      <p class="font-label-technical text-label-technical text-on-surface-variant max-w-xs">
+        Architectural technical wear. Designed with discipline. Built for the convergence.
+      </p>
+    </div>
+    <div class="mt-16 md:mt-0 w-full flex flex-col gap-4">
+      <div class="h-[1px] w-full bg-outline-variant"></div>
+      <p class="font-label-technical text-label-technical text-on-surface-variant uppercase">© {% now "Y" %} PHINOX. RULE OF TWO.</p>
+    </div>
+  </footer>
+</main>
+
+<script>
+  (function () {
+    if (typeof IntersectionObserver === 'undefined') return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.stitch-section').forEach(function (s) { observer.observe(s); });
+  })();
+</script>
+{% endblock %}

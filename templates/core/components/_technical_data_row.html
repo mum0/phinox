@@ -1,0 +1,10 @@
+{% comment %}
+Generic label/value technical data pair — label-technical caption + mono
+value. Reused across 404 (error code / timestamp), Checkout (order summary
+lines), Contact (address / hours). Usage:
+{% include "core/components/_technical_data_row.html" with label="SUBTOTAL" value="4,450 EGP" %}
+{% endcomment %}
+<div class="flex justify-between items-center{% if extra_class %} {{ extra_class }}{% endif %}">
+  <span class="font-label-technical text-on-surface-variant">{{ label }}</span>
+  <span class="font-body-base{% if value_class %} {{ value_class }}{% endif %}">{{ value }}</span>
+</div>

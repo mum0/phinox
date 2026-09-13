@@ -1,0 +1,7 @@
+{% comment %}
+Orange Lock Stitch — recurring 1-2px x 8px fire-orange micro-mark used to
+signal status/active state per DESIGN.md's "The Orange Lock Stitch" component.
+Usage: {% include "core/components/_orange_lock_stitch.html" with animated=True %}
+[SOURCE: code.html — 404 (animated), Contact (static)]
+{% endcomment %}
+<div class="w-1 h-8 bg-[#E85D04]{% if animated %} lock-stitch{% endif %}"></div>

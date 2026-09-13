@@ -1,0 +1,40 @@
+{% extends "base_standard.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-REGISTER-FIX — verification success page.
+URL: shown when /accounts/verify/<token>/ successfully activates the user.
+
+Per دستور §5: user.is_active was just set to True. Show a clear success
+message + CTA to login. The previous flow used Django messages framework
++ redirect to login; this page gives a richer post-activation experience.
+{% endcomment %}
+
+{% block title %}PHINOX — Dossier Activated{% endblock %}
+
+{% block body_class %}bg-black text-white font-body-md overflow-x-hidden{% endblock %}
+
+{% block body %}
+<main class="pt-14 sm:pt-16 pb-24 min-h-screen flex flex-col items-center justify-center px-margin-mobile">
+  <section class="w-full max-w-md flex flex-col items-center gap-8 text-center">
+    <div class="w-12 h-12 border-2 border-[#E85D04] flex items-center justify-center bg-[#E85D04]/10" aria-hidden="true">
+      <span class="material-symbols-outlined text-[#E85D04] text-2xl">check_circle</span>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <span class="font-mono text-[10px] uppercase tracking-widest text-[#E85D04]">STATUS // VERIFIED</span>
+      <h1 class="font-mono text-2xl uppercase tracking-tight font-bold">DOSSIER ACTIVATED</h1>
+      <p class="font-mono text-xs text-neutral-400 leading-relaxed max-w-sm">
+        Your operative dossier has been activated. You may now access the PHINOX archive
+        with your communication identifier + security token.
+      </p>
+    </div>
+
+    <a href="{% url 'accounts:login' %}"
+       class="w-full max-w-xs bg-[#E85D04] hover:bg-[#FF6A1A] text-black font-bold text-xs uppercase tracking-widest py-4 transition-all flex items-center justify-center gap-2 min-h-[48px]">
+      <span>INITIATE ACCESS SEQUENCE</span>
+      <span aria-hidden="true">→</span>
+    </a>
+  </section>
+</main>
+{% endblock %}

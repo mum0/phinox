@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 3 / Page 8 (Collection Detail).
+Adapted from the Stitch product_list layout, scoped to a single Collection.
+
+Context provided by CollectionDetailView (apps/catalog/views.py):
+  - ``collection``         — the Collection instance (with products prefetched)
+  - ``collection_products`` — only the active products inside this collection
+{% endcomment %}
+
+{% block title %}PHINOX — {{ collection.name }} (Collection){% endblock %}
+
+{% block extra_head %}
+<style>
+  .stitch-section { opacity: 0; transition: opacity 600ms ease; }
+  .stitch-section.is-visible { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .stitch-section { opacity: 1; } }
+</style>
+{% endblock %}
+
+{% block body_class %}bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container{% endblock %}
+
+{% block body %}
+<header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.6)]" role="banner">
+  <div class="h-16 max-w-[1440px] mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between">
+    <a href="{% url 'catalog:collection_list' %}" class="flex items-center gap-2 font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors" aria-label="Back to collections">
+      <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_back</span>
+      <span class="hidden sm:inline">COLLECTIONS</span>
+    </a>
+    <a href="{% url 'pages:home' %}" class="font-label-technical text-label-technical tracking-widest text-on-surface uppercase font-bold" aria-label="PHINOX home">PHINOX</a>
+    <a class="flex items-center justify-center p-2 text-on-surface hover:text-primary transition-colors min-h-[48px]" href="{% url 'cart:cart' %}" aria-label="Shopping cart">
+      <span class="material-symbols-outlined text-[20px]" aria-hidden="true">shopping_bag</span>
+    </a>
+  </div>
+</header>
+
+<main class="w-full pt-16 bg-background min-h-screen">
+
+  {# ── Hero ────────────────────────────────────────────────────────────────── #}
+  <section class="py-12 md:py-16 px-margin-mobile md:px-margin-desktop" aria-labelledby="collection-heading">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex items-center gap-gutter mb-4">
+        <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+        <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">// COLLECTION // {{ collection.slug|upper }}</span>
+      </div>
+      <h1 id="collection-heading" class="font-display-xl text-[40px] md:text-[56px] leading-none uppercase font-extrabold tracking-tight text-on-surface">
+        {{ collection.name }}
+      </h1>
+      {% if collection.description %}
+      <p class="font-body-md text-on-surface-variant max-w-2xl mt-6 leading-relaxed">
+        {{ collection.description }}
+      </p>
+      {% endif %}
+      <div class="flex flex-wrap items-center gap-3 mt-8 font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest">
+        {% if collection.starts_at %}<span>START: {{ collection.starts_at|date:"j M Y" }}</span>{% endif %}
+        {% if collection.ends_at %}<span>END: {{ collection.ends_at|date:"j M Y" }}</span>{% endif %}
+        <span class="bg-surface-container-low px-3 py-1">{{ collection_products|length }} ITEM{{ collection_products|length|pluralize }}</span>
+      </div>
+    </div>
+  </section>
+
+  {# ── Products grid ──────────────────────────────────────────────────────── #}
+  <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin-desktop pb-16 stitch-section">
+
+    {% if collection_products %}
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-gutter" role="list">
+
+        {% for product in collection_products %}
+          <article class="bg-surface-container-low group relative overflow-hidden flex flex-col" role="listitem" aria-labelledby="prod-{{ product.pk }}-name">
+            <a href="{% url 'catalog:product_detail' slug=product.slug %}" class="block aspect-square bg-surface-container overflow-hidden relative" aria-label="View {{ product.name }}">
+              {% with first_image=product.images.first %}
+                {% if first_image %}
+                  <img src="{{ first_image.image.url }}"
+                       alt="{{ first_image.alt_text|default:product.name }}"
+                       loading="lazy"
+                       class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                {% else %}
+                  <img src="{% static 'images/stitch/phinox_collections_matrix_collections_desktop/01.jpg' %}"
+                       alt="{{ product.name }}"
+                       loading="lazy"
+                       class="w-full h-full object-cover grayscale opacity-60">
+                {% endif %}
+              {% endwith %}
+              <span class="absolute top-2 left-2 bg-surface-container-lowest/90 backdrop-blur-sm px-2 py-1 font-label-sm text-label-sm text-primary uppercase tracking-widest">
+                {{ product.business_id }}
+              </span>
+            </a>
+            <div class="p-gutter flex flex-col flex-1">
+              <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-1">{{ product.category.name|upper }}</p>
+              <h3 id="prod-{{ product.pk }}-name" class="font-headline-lg text-[18px] text-on-surface uppercase tracking-tight leading-tight mb-3">
+                <a href="{% url 'catalog:product_detail' slug=product.slug %}" class="hover:text-primary transition-colors">
+                  {{ product.name|upper }}
+                </a>
+              </h3>
+              <p class="font-label-technical text-label-technical text-primary font-bold mt-auto">{{ product.base_price|floatformat:2 }} <span class="text-[10px] text-on-surface-variant">{{ product.currency }}</span></p>
+            </div>
+          </article>
+        {% endfor %}
+
+      </div>
+    {% else %}
+      <div class="border border-outline-variant bg-surface-container-low p-gutter sm:p-12 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 border-2 border-outline-variant mb-4" aria-hidden="true">
+          <span class="material-symbols-outlined text-outline text-[36px]">inventory_2</span>
+        </div>
+        <p class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface mb-3">NO PRODUCTS IN THIS COLLECTION</p>
+        <p class="font-body-md text-on-surface-variant mb-8 max-w-md mx-auto">
+          The collection has no active products yet. Browse the full archive meanwhile.
+        </p>
+        <a href="{% url 'catalog:product_list' %}" class="inline-block bg-primary text-on-primary font-label-technical text-label-technical uppercase tracking-widest font-bold px-8 py-3.5 hover:opacity-90 transition-opacity min-h-[48px]">
+          BROWSE ARCHIVE →
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+</main>
+
+<footer class="w-full px-margin-mobile md:px-margin-desktop bg-surface-container-lowest border-t border-outline-variant py-6 text-center" role="contentinfo">
+  <p class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest">
+    © {% now "Y" %} PHINOX // {{ collection.name|upper }} // COLLECTION
+  </p>
+</footer>
+
+<script>
+  (function () {
+    if (typeof IntersectionObserver === 'undefined') return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.stitch-section').forEach(function (s) { observer.observe(s); });
+  })();
+</script>
+{% endblock %}

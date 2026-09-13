@@ -1,0 +1,62 @@
+{% load static %}
+{% comment %}
+PHINOX — Unified Footer (Phase: UNIFY-TOPBAR)
+Per دستور §9: zero border-radius, #E85D04 fire orange, #121414 dark surface.
+Social links disabled (opacity-40, pointer-events-none) until accounts are created.
+{% endcomment %}
+<footer class="mt-auto bg-phx-surface-dim border-t border-phx-border" role="contentinfo">
+  <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+      {# ── Brand + tagline ─────────────────────────────────────────────── #}
+      <div class="space-y-3">
+        <span class="font-display text-lg font-bold tracking-widest text-phx-text">PHINOX<span class="text-phx-fire">.</span></span>
+        <p class="font-mono text-[10px] uppercase tracking-widest text-phx-text-dim" aria-label="Tagline">Forged in fire</p>
+        <p class="font-mono text-[10px] uppercase tracking-widest text-phx-text-dim">EGP · Egypt · Alexandria Node</p>
+      </div>
+
+      {# ── Legal links ─────────────────────────────────────────────────── #}
+      <div class="space-y-3">
+        <p class="font-mono text-[10px] uppercase tracking-widest text-phx-fire">// LEGAL</p>
+        <nav class="flex flex-col gap-2" aria-label="Legal links">
+          <a href="{% url 'pages:privacy' %}" class="font-mono text-[10px] uppercase tracking-widest text-phx-text-muted hover:text-phx-fire transition-colors">PRIVACY</a>
+          <a href="{% url 'pages:terms' %}" class="font-mono text-[10px] uppercase tracking-widest text-phx-text-muted hover:text-phx-fire transition-colors">TERMS</a>
+          <a href="{% url 'pages:returns' %}" class="font-mono text-[10px] uppercase tracking-widest text-phx-text-muted hover:text-phx-fire transition-colors">RETURNS</a>
+          <a href="{% url 'pages:faq' %}" class="font-mono text-[10px] uppercase tracking-widest text-phx-text-muted hover:text-phx-fire transition-colors">FAQ</a>
+        </nav>
+      </div>
+
+      {% comment %}Social links will be enabled when accounts are created (Phase 6+).{% endcomment %}
+      <div class="space-y-3">
+        <p class="font-mono text-[10px] uppercase tracking-widest text-phx-fire">// FOLLOW</p>
+        <nav class="flex items-center gap-3" aria-label="Social media">
+          <a href="#" class="opacity-40 cursor-not-allowed pointer-events-none min-h-[48px] min-w-[48px] flex items-center justify-center text-phx-text-muted" aria-disabled="true" tabindex="-1" title="Coming soon" aria-label="Instagram (coming soon)">
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">photo_camera</span>
+          </a>
+          <a href="#" class="opacity-40 cursor-not-allowed pointer-events-none min-h-[48px] min-w-[48px] flex items-center justify-center text-phx-text-muted" aria-disabled="true" tabindex="-1" title="Coming soon" aria-label="Facebook (coming soon)">
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">group</span>
+          </a>
+          <a href="#" class="opacity-40 cursor-not-allowed pointer-events-none min-h-[48px] min-w-[48px] flex items-center justify-center text-phx-text-muted" aria-disabled="true" tabindex="-1" title="Coming soon" aria-label="TikTok (coming soon)">
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">music_note</span>
+          </a>
+          <a href="#" class="opacity-40 cursor-not-allowed pointer-events-none min-h-[48px] min-w-[48px] flex items-center justify-center text-phx-text-muted" aria-disabled="true" tabindex="-1" title="Coming soon" aria-label="X (coming soon)">
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">tag</span>
+          </a>
+          <a href="#" class="opacity-40 cursor-not-allowed pointer-events-none min-h-[48px] min-w-[48px] flex items-center justify-center text-phx-text-muted" aria-disabled="true" tabindex="-1" title="Coming soon" aria-label="YouTube (coming soon)">
+            <span class="material-symbols-outlined text-[20px]" aria-hidden="true">play_circle</span>
+          </a>
+        </nav>
+      </div>
+    </div>
+
+    {# ── Copyright bar ───────────────────────────────────────────────── #}
+    <div class="mt-8 pt-6 border-t border-phx-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <p class="font-mono text-[10px] uppercase tracking-widest text-phx-text-dim">
+        &copy; <span data-year>2025</span> PHINOX. RULE OF TWO.
+      </p>
+      <p class="font-mono text-[10px] uppercase tracking-widest text-phx-text-dim">
+        ALEXANDRIA NODE · 31.2001°N · 29.9187°E
+      </p>
+    </div>
+  </div>
+</footer>

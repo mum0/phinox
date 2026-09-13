@@ -1,0 +1,328 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PHINOX — Forged in fire. Egyptian e-commerce platform.">
+  <title>{% block title %}PHINOX{% endblock %}</title>
+
+  {# Google Fonts: Archivo Narrow (headlines), JetBrains Mono (technical/labels), Hanken Grotesk (body) #}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;500;600;700&family=Hanken+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  {% comment %}Tailwind Phase 6 hybrid approach:
+     DEBUG=True (dev): CDN script + inline config (fast hot-reload).
+     DEBUG=False (prod): compiled static/css/dist.css (no JS payload).
+     Per دستور §9: zero border-radius + fire orange #E85D04 in BOTH paths.{% endcomment %}
+  {% if debug %}
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+            // ── PHINOX project tokens (existing) ──────────────────────────
+            'phx-surface':          '#121414', // base dark surface
+            'phx-surface-dim':      '#0d0e0f', // header / footer
+            'phx-surface-low':      '#1a1c1c',
+            'phx-surface-mid':      '#1e2020',
+            'phx-surface-high':     '#292a2a',
+            'phx-surface-highest':  '#343535',
+            'phx-fire':             '#E85D04', // brand fire-orange accent
+            'phx-fire-dim':         '#b34800',
+            'phx-text':             '#e3e2e2', // primary text on dark
+            'phx-text-dim':         '#8e9192', // secondary text
+            'phx-text-muted':       '#c4c7c7',
+            'phx-border':           '#343535',
+            'phx-border-bright':    '#444748',
+
+            // ── Stitch brand-* tokens (Phase 4 integration) ────────────────
+            // Used by Stitch cart/checkout/payment/confirmation/auth pages.
+            // Source: Stitch DESIGN.md + per-page inline tailwind configs.
+            // These mirror the phx-* values so a single Tailwind build
+            // serves both vocabularies. (Zero border-radius law still
+            // holds — see borderRadius block below.)
+            'brand-bg':             '#0a0a0a', // dark page background
+            'brand-pitch':          '#000000', // blackest
+            'brand-black':          '#0a0a0a',
+            'brand-surface':        '#121414', // matches phx-surface
+            'brand-panel':          '#1a1c1c',
+            'brand-card':           '#181818', // per DESIGN.md "Card surfaces"
+            'brand-subtle':         '#1a1a1a',
+            'brand-dim':            '#0d0e0f',
+            'brand-light':          '#e3e2e2',
+            'brand-text':           '#e3e2e2',
+            'brand-subtext':        '#8e9192',
+            'brand-muted':          '#c4c7c7',
+            'brand-border':         '#2a2a2a', // ghost border per DESIGN.md
+            'brand-orange':         '#E85D04', // matches phx-fire (fire orange)
+            'brand-green':          '#4ade80', // success state (Stitch payment page)
+
+            // ── Stitch Material Design 3 surface tokens ──────────────────
+            // Used by Stitch home / 404 / contact pages.
+            // Source: Stitch phinox_home inline tailwind.config + DESIGN.md.
+            'surface':              '#121414',
+            'surface-dim':          '#121414',
+            'surface-bright':       '#38393a',
+            'surface-variant':      '#343535',
+            'surface-container-lowest': '#0d0e0f',
+            'surface-container-low':  '#1a1c1c',
+            'surface-container':     '#1e2020',
+            'surface-container-high':'#292a2a',
+            'surface-container-highest': '#343535',
+            'surface-tint':          '#c8c6c5',
+            'background':           '#121414',
+            'on-background':         '#e3e2e2',
+            'on-surface':            '#e3e2e2',
+            'on-surface-variant':    '#c4c7c7',
+            'inverse-surface':       '#e3e2e2',
+            'inverse-on-surface':    '#2f3131',
+            'outline':               '#8e9192',
+            'outline-variant':       '#444748',
+
+            // ── Stitch Material Design 3 primary / secondary / tertiary ────
+            // Stitch DESIGN.md spec: Primary Accent "Fire Orange" #E85D04.
+            // The Stitch HTML's primary/primary-container differ per page
+            // (some use #c8c6c5/#0f0f0f for the contact page, some use
+            // #ffb596/#f26411 for the home page). We standardize on the
+            // brand law value (#E85D04) and provide the muted/secondary
+            // variants Stitch's typography uses (e.g. text-primary for
+            // technical labels).
+            'primary':               '#E85D04',
+            'on-primary':            '#0a0a0a',
+            'primary-container':     '#0f0f0f',
+            'on-primary-container':  '#e3e2e2',
+            'primary-fixed':         '#ffdbcd',
+            'primary-fixed-dim':     '#ffb596',
+            'on-primary-fixed':      '#360f00',
+            'on-primary-fixed-variant':'#7c2e00',
+            'inverse-primary':       '#5f5e5e',
+            'secondary':             '#c6c6c7',
+            'on-secondary':          '#2f3131',
+            'secondary-container':   '#454747',
+            'on-secondary-container':'#b4b5b5',
+            'secondary-fixed':       '#e2e2e2',
+            'secondary-fixed-dim':  '#c6c6c7',
+            'on-secondary-fixed':    '#1a1c1c',
+            'on-secondary-fixed-variant':'#454747',
+            'tertiary':              '#ffb596',
+            'on-tertiary':           '#581e00',
+            'tertiary-container':   '#210700',
+            'on-tertiary-container': '#d35300',
+            'tertiary-fixed':        '#d5e3ff',
+            'tertiary-fixed-dim':    '#a6c8ff',
+            'on-tertiary-fixed':     '#001c3b',
+            'on-tertiary-fixed-variant':'#004787',
+            'error':                 '#ffb4ab',
+            'on-error':              '#690005',
+            'error-container':       '#93000a',
+            'on-error-container':    '#ffdad6',
+          },
+          fontFamily: {
+            'display': ['"Archivo Narrow"', 'sans-serif'],
+            'mono':    ['"JetBrains Mono"', 'monospace'],
+            'body':    ['"Hanken Grotesk"', 'sans-serif'],
+            // Stitch Material Design 3 font-family aliases (used by Stitch
+            // templates that came from the phinox_home/contact ports):
+            'display-xl':         ['"Hanken Grotesk"', 'sans-serif'],
+            'headline-lg':         ['"Hanken Grotesk"', 'sans-serif'],
+            'headline-lg-mobile':  ['"Hanken Grotesk"', 'sans-serif'],
+            'body-md':             ['"Hanken Grotesk"', 'sans-serif'],
+            'label-sm':            ['"JetBrains Mono"', 'monospace'],
+            'label-xs':             ['"JetBrains Mono"', 'monospace'],
+            'label-technical':     ['"JetBrains Mono"', 'monospace'],
+            'technical-sm':        ['"JetBrains Mono"', 'monospace'],
+            'headline':            ['"Archivo Narrow"', 'sans-serif'],
+          },
+          fontSize: {
+            // Stitch Material Design 3 type-scale aliases (used by home/contact):
+            'display-xl':         ['80px', {"lineHeight": "1.0", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+            'headline-lg':        ['48px', {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            'headline-lg-mobile': ['32px', {"lineHeight": "1.2", "fontWeight": "700"}],
+            'body-md':            ['16px', {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+            'label-technical':    ['12px', {"lineHeight": "1.4", "letterSpacing": "0.08em", "fontWeight": "500"}],
+            'label-sm':           ['10px', {"lineHeight": "1.2", "fontWeight": "400"}],
+            'label-xs':           ['10px', {"lineHeight": "1.2", "letterSpacing": "0.25em", "fontWeight": "700"}],
+            'technical-sm':       ['12px', {"lineHeight": "1.4", "letterSpacing": "0.20em", "fontWeight": "500"}],
+          },
+          spacing: {
+            'unit':           '4px',
+            'gutter':         '24px',
+            'margin-mobile':  '16px',
+            'margin-desktop': '64px',
+            'section-gap':    '128px',
+            'container-max':  '1440px',
+            'touch-target-min': '48px',
+          },
+          // BRAND LAW: zero border-radius on everything (AGENTS.md §0.6)
+          borderRadius: {
+            'DEFAULT': '0px',
+            'none':    '0px',
+            'sm':      '0px',
+            'md':      '0px',
+            'lg':      '0px',
+            'xl':      '0px',
+            '2xl':     '0px',
+            '3xl':     '0px',
+            'full':    '9999px', // pills for badges only
+          },
+          letterSpacing: {
+            'wide-xl': '0.15em',
+            'wide-2xl': '0.20em',
+            'wide-3xl': '0.25em',
+            'widest':   '0.25em',
+          },
+        }
+      }
+    }
+    </script>
+  {% else %}
+    {# Production: compiled Tailwind dist.css — no JS payload, no CDN. #}
+    <link rel="stylesheet" href="{% static 'css/dist.css' %}">
+  {% endif %}
+
+  {% comment %}Material Symbols Outlined — icon font used by Stitch templates.
+  Loaded here (instead of per-page) so every Stitch-converted page has it.{% endcomment %}
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+
+  {# GA4 gtag.js snippet — renders only when GA4_MEASUREMENT_ID is set (apps/analytics/context_processors.py). #}
+  {% include "analytics/ga4.html" %}
+
+  <style>
+    /* Material Symbols base — Stitch pages use this class on icon spans. */
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      line-height: 1;
+    }
+    html { background-color: #121414; }
+    body { font-family: 'Hanken Grotesk', sans-serif; }
+    .font-display { font-family: 'Archivo Narrow', sans-serif; }
+    .font-mono    { font-family: 'JetBrains Mono', monospace; }
+    .font-body    { font-family: 'Hanken Grotesk', sans-serif; }
+    /* Hairline focus ring using brand fire — keeps zero-radius law */
+    *:focus-visible {
+      outline: 2px solid #E85D04;
+      outline-offset: 2px;
+      border-radius: 0 !important;
+    }
+    /* Hide HTMX-loading flicker before swaps settle */
+    [hx-get], [hx-post] { transition: opacity 120ms ease; }
+    .htmx-request { opacity: 0.55; }
+    /* Toast animation */
+    @keyframes phx-toast-in {
+      from { transform: translateY(120%); opacity: 0; }
+      to   { transform: translateY(0);     opacity: 1; }
+    }
+    [data-phx-toast].phx-toast-show { animation: phx-toast-in 220ms ease forwards; }
+
+    /* Stitch helper: orange "lock stitch" 2px vertical accent (DESIGN.md).
+       Used by Stitch list-hover and section markers. */
+    .lock-stitch { position: relative; }
+    .lock-stitch::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 25%;
+      height: 50%;
+      width: 2px;
+      background-color: #E85D04;
+    }
+    .orange-stitch { width: 2px; height: 8px; background-color: #E85D04; display: inline-block; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-phx-surface text-phx-text min-h-screen flex flex-col antialiased selection:bg-phx-fire selection:text-phx-surface-dim">
+
+  {# CSRF token exposed to JS for fetch() / htmx AJAX calls (AGENTS.md §0.6 — CSRF on every form) #}
+  <script>
+    window.PHINOX = window.PHINOX || {};
+    window.PHINOX.CSRF_TOKEN = "{{ csrf_token|default_if_none:'' }}";
+    window.PHINOX.userAuthenticated = {{ request.user.is_authenticated|yesno:'true,false' }};
+  </script>
+
+  {% block body %}
+  {% comment %}Default body shell: unified topbar + main + unified footer.
+     Children can override this entire block via {% block body %} to
+     render a bespoke shell (e.g. base_standard.html, checkout pages,
+     auth pages).{% endcomment %}
+
+  {% include "core/components/_topbar_unified.html" %}
+
+  {# ───────────────────────── Main content ───────────────────────── #}
+  <main id="main" class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 sm:pt-16 pb-6 sm:pb-8 lg:pb-12" role="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "core/components/_footer_unified.html" %}
+  {% endblock %}
+
+  {# ───────────────────────── HTMX (loaded on every page; small cost, big DX) ───────────────────────── #}
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+  <script>
+    // Inject CSRF token on every HTMX request
+    document.body.addEventListener('htmx:configRequest', function (evt) {
+      evt.detail.headers['X-CSRFToken'] = window.PHINOX.CSRF_TOKEN;
+    });
+
+    // Live-update year in footer
+    document.addEventListener('DOMContentLoaded', function () {
+      var yearEl = document.querySelector('[data-year]');
+      if (yearEl) { yearEl.textContent = new Date().getFullYear(); }
+    });
+
+    // ── Global toast helper (used by product_detail + cart AJAX) ──────────
+    // Usage: PHINOX.toast('Added to cart', 'success');
+    window.PHINOX.toast = function (message, level) {
+      level = level || 'info';
+      var host = document.querySelector('[data-phx-toast-host]');
+      if (!host) {
+        host = document.createElement('div');
+        host.setAttribute('data-phx-toast-host', '');
+        host.className = 'fixed bottom-4 right-4 z-[100] flex flex-col gap-2';
+        document.body.appendChild(host);
+      }
+      var el = document.createElement('div');
+      el.setAttribute('data-phx-toast', '');
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-live', 'polite');
+      var color = level === 'error' ? 'border-phx-fire bg-phx-surface-dim text-phx-text'
+                : level === 'success' ? 'border-phx-fire bg-phx-surface-dim text-phx-text'
+                : 'border-phx-border-bright bg-phx-surface-mid text-phx-text';
+      el.className = 'phx-toast-show border-l-4 ' + color + ' px-4 py-3 min-w-[240px] max-w-sm shadow-lg';
+      el.innerHTML = '<span class="font-mono text-[11px] uppercase tracking-wide-2xl">' +
+                     message + '</span>';
+      host.appendChild(el);
+      setTimeout(function () {
+        el.style.transition = 'opacity 240ms ease';
+        el.style.opacity = '0';
+        setTimeout(function () { el.remove(); }, 260);
+      }, 3200);
+    };
+
+    // ── Cart count badge update (called after add-to-cart / remove) ──────────
+    window.PHINOX.updateCartCount = function (count) {
+      var badges = document.querySelectorAll('[data-cart-count]');
+      badges.forEach(function (b) {
+        if (count > 0) {
+          b.textContent = count > 99 ? '99+' : String(count);
+          b.classList.remove('hidden');
+        } else {
+          b.classList.add('hidden');
+        }
+      });
+    };
+  </script>
+
+  {# ───────────────────────── Page-specific scripts ───────────────────────── #}
+  {% block scripts %}{% endblock %}
+</body>
+</html>

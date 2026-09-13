@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 3 / Page 5 (404 Stitch refresh).
+Source: stitch_phinox_architectural_luxury_e_commerce/phinox_404_lost_coordinates_desktop/code.html
+
+Replaces the existing core/404.html (which was already a Stitch port but
+using the legacy phx-* tokens). This refresh aligns the 404 page with the
+brand system tokens (surface-* / primary-* / outline-*) used by the rest
+of the Stitch-integrated storefront (Home, About, FAQ, Legal, Profile,
+etc.).
+
+Key Stitch "Lost Coordinates" elements preserved:
+  - "RADAR LOST // SIGNAL DESYNCHRONIZED" header banner
+  - Node coordinates (Alexandria node, lat/lon)
+  - "TELEMETRY TIMEOUT 404ms" reference
+  - Big "404" display number
+  - Search + dispatch CTAs
+  - Animated orange "scanline" sweep (radar telemetry homage)
+
+Per دستور §0.6: zero border-radius, fire orange #E85D04 only as accent.
+{% endcomment %}
+
+{% block title %}PHINOX // 404 LOST COORDINATES{% endblock %}
+
+{% block extra_head %}
+<style>
+  {# Animated fire-orange stitch divider — horizontal lock-stitch homage to PHINOX §0.6 brand law #}
+  @keyframes phx-stitch-march {
+    0%   { background-position: 0 0; }
+    100% { background-position: 24px 0; }
+  }
+  @keyframes phx-stitch-blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.45; }
+  }
+  .phx-stitch-divider {
+    height: 6px;
+    width: 100%;
+    background-image: repeating-linear-gradient(
+      90deg, #E85D04 0, #E85D04 8px, transparent 8px, transparent 24px
+    );
+    animation: phx-stitch-march 600ms linear infinite, phx-stitch-blink 2.2s ease-in-out infinite;
+  }
+  {# Scanline — subtle ambient fire-orange sweep (radar telemetry homage) #}
+  @keyframes phx-scan {
+    0%   { transform: translateY(-10vh); opacity: 0; }
+    20%  { opacity: 0.6; }
+    80%  { opacity: 0.6; }
+    100% { transform: translateY(110vh); opacity: 0; }
+  }
+  .phx-scanline {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(232, 93, 4, 0.55), transparent);
+    pointer-events: none;
+    animation: phx-scan 9s linear infinite;
+  }
+  {# Stitch "lost coordinates" radial grid pattern #}
+  .radar-grid {
+    background-image:
+      radial-gradient(circle, rgba(232, 93, 4, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+</style>
+{% endblock %}
+
+{% block body_class %}bg-surface text-on-surface font-body-md antialiased selection:bg-primary-container selection:text-on-primary-container{% endblock %}
+
+{% block body %}
+{# ── Top bar (Stitch bespoke — minimal, no topbar_standard include) ───────── #}
+<header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.6)]" role="banner">
+  <div class="h-16 max-w-[1440px] mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a class="flex items-center gap-3 group" href="{% url 'pages:home' %}" aria-label="PHINOX home">
+        <span class="font-label-technical text-label-technical tracking-widest text-on-surface uppercase font-bold">PHINOX</span>
+        <span class="font-label-sm text-label-sm text-outline bg-surface-container-high px-2 py-0.5 hidden sm:inline-block">SYS.V2.0</span>
+      </a>
+    </div>
+    <nav class="hidden lg:flex items-center gap-8" aria-label="Primary navigation">
+      <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-on-surface transition-colors tracking-widest uppercase" href="{% url 'catalog:product_list' %}">SHOP</a>
+      <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-on-surface transition-colors tracking-widest uppercase" href="{% url 'catalog:collection_list' %}">COLLECTIONS</a>
+      <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-on-surface transition-colors tracking-widest uppercase" href="{% url 'catalog:search' %}">SEARCH</a>
+      <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-on-surface transition-colors tracking-widest uppercase" href="{% url 'pages:faq' %}">FAQ</a>
+      <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-on-surface transition-colors tracking-widest uppercase" href="{% url 'pages:privacy' %}">LEGAL</a>
+    </nav>
+    <div class="flex items-center gap-6">
+      <a class="flex items-center justify-center p-2 text-on-surface hover:text-primary transition-colors min-h-[48px]" href="{% url 'cart:cart' %}" aria-label="Shopping cart">
+        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">shopping_bag</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="w-full pt-16 bg-surface min-h-screen">
+  <section class="relative w-full overflow-hidden bg-surface-container-lowest px-margin-mobile md:px-margin-desktop py-12" aria-labelledby="error-404-heading">
+    <div class="absolute inset-0 opacity-15 pointer-events-none radar-grid" aria-hidden="true"></div>
+    <div class="phx-scanline" aria-hidden="true"></div>
+    <div class="absolute -top-32 right-10 w-96 h-96 bg-primary-container/10 blur-3xl pointer-events-none" aria-hidden="true"></div>
+
+    <div class="relative max-w-[1440px] mx-auto flex flex-col gap-gutter">
+
+      {# ── Status banner ────────────────────────────────────────────────── #}
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-surface-container-low p-4 md:px-6 md:py-3">
+        <div class="flex items-center gap-4">
+          <span class="inline-block w-2.5 h-2.5 bg-primary animate-ping" aria-hidden="true"></span>
+          <span class="font-label-technical text-label-technical tracking-widest text-primary uppercase">RADAR LOST // SIGNAL DESYNCHRONIZED</span>
+        </div>
+        <div class="flex items-center gap-3 md:gap-6 font-label-sm text-label-sm text-outline flex-wrap">
+          <span class="text-on-surface-variant hidden md:inline">NODE: ALX-SEC-01</span>
+          <span class="hidden md:inline">LAT: 31.2001° N</span>
+          <span class="hidden md:inline">LON: 29.9187° E</span>
+          <span class="text-error font-label-technical text-label-technical">TELEMETRY TIMEOUT 404ms</span>
+        </div>
+      </div>
+
+      {# ── Main grid ────────────────────────────────────────────────────── #}
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-stretch">
+
+        {# ── LEFT: Big 404 + text ─────────────────────────────────────────── #}
+        <div class="lg:col-span-7 flex flex-col justify-between space-y-gutter bg-surface-container-low p-6 md:p-12">
+          <div>
+            <p class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest mb-4">
+              // ERROR 404 // RESOURCE OUT OF RANGE
+            </p>
+            <h1 id="error-404-heading" class="font-display-xl text-[80px] sm:text-[120px] lg:text-[160px] leading-none font-extrabold text-on-surface tracking-tight select-none">
+              404
+            </h1>
+            <p class="font-label-technical text-label-technical text-primary uppercase tracking-widest mt-4">
+              LOST COORDINATES // STRUCTURE REQUIRES INTENT
+            </p>
+            <div class="phx-stitch-divider mt-8" aria-hidden="true"></div>
+            <p class="font-body-md text-body-md text-on-surface-variant mt-8 max-w-md leading-relaxed">
+              The coordinate you requested lies outside the PHINOX archive. The page may have been moved, archived, or never existed. Search the archive below or return to known coordinates.
+            </p>
+          </div>
+
+          <div class="space-y-4">
+            {# ── Search bar ───────────────────────────────────────────────── #}
+            <form action="{% url 'catalog:search' %}" method="get" accept-charset="utf-8" role="search" class="w-full flex" aria-label="Search PHINOX products">
+              <label for="phx-404-search" class="sr-only">Search products</label>
+              <input
+                type="search" id="phx-404-search" name="q" placeholder="SEARCH_PRODUCTS"
+                autocomplete="off"
+                class="flex-1 h-12 sm:h-14 bg-surface-container border border-outline-variant px-4 font-label-technical text-label-technical text-on-surface placeholder:text-outline focus:outline-none focus:border-primary transition-colors">
+              <button type="submit"
+                      class="h-12 sm:h-14 px-6 bg-primary text-on-primary font-label-technical text-label-technical uppercase tracking-widest font-bold hover:opacity-90 active:scale-[0.99] transition-all min-h-[48px]"
+                      aria-label="Submit product search">
+                GO
+              </button>
+            </form>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+              <a href="{% url 'pages:home' %}"
+                 class="flex-1 inline-flex items-center justify-center gap-3 h-14 border border-outline text-on-surface font-label-technical text-label-technical uppercase tracking-widest font-bold hover:border-primary hover:text-primary active:scale-[0.99] transition-all min-h-[48px]"
+                 aria-label="Back to PHINOX home">
+                <span aria-hidden="true">&larr;</span>
+                <span>BACK TO HOME</span>
+              </a>
+              <a href="{% url 'catalog:product_list' %}"
+                 class="flex-1 inline-flex items-center justify-center gap-3 h-14 bg-primary text-on-primary font-label-technical text-label-technical uppercase tracking-widest font-bold hover:opacity-90 active:scale-[0.99] transition-all min-h-[48px]"
+                 aria-label="Browse PHINOX products">
+                <span>BROWSE_PRODUCTS</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {# ── RIGHT: Telemetry data ──────────────────────────────────────── #}
+        <div class="lg:col-span-5 bg-surface-container-lowest p-6 md:p-10 flex flex-col gap-gutter">
+          <h2 class="font-label-technical text-label-technical text-primary uppercase tracking-widest">// TELEMETRY LOG</h2>
+
+          <div class="space-y-4 font-label-technical text-label-technical">
+            <div>
+              <p class="text-outline uppercase text-[10px] tracking-widest">REQUEST_ID</p>
+              <p class="text-on-surface mt-1 break-all">{{ request_id|default:"—" }}</p>
+            </div>
+            <div>
+              <p class="text-outline uppercase text-[10px] tracking-widest">REQUEST_PATH</p>
+              <p class="text-on-surface mt-1 break-all">{{ request_path|default:"—" }}</p>
+            </div>
+            <div>
+              <p class="text-outline uppercase text-[10px] tracking-widest">TIMESTAMP</p>
+              <p class="text-on-surface mt-1">
+                <time id="phx-timestamp" datetime="{% now 'c' %}">{% now 'Y-m-d H:i:s T' %}</time>
+              </p>
+            </div>
+            <div>
+              <p class="text-outline uppercase text-[10px] tracking-widest">USER_AGENT</p>
+              <p class="text-on-surface-variant mt-1 text-[11px] break-all">{{ request.META.HTTP_USER_AGENT|default:"unknown"|truncatechars:60 }}</p>
+            </div>
+          </div>
+
+          <div class="mt-auto pt-6 border-t border-outline-variant">
+            <p class="font-label-sm text-label-sm text-outline uppercase tracking-widest mb-2">SUGGESTED COORDINATES</p>
+            <ul class="space-y-2 font-label-technical text-label-technical text-on-surface-variant">
+              <li><a href="{% url 'catalog:product_list' %}" class="hover:text-primary transition-colors">→ /products/</a></li>
+              <li><a href="{% url 'catalog:collection_list' %}" class="hover:text-primary transition-colors">→ /products/collections/</a></li>
+              <li><a href="{% url 'pages:faq' %}" class="hover:text-primary transition-colors">→ /faq/</a></li>
+              <li><a href="{% url 'pages:contact' %}" class="hover:text-primary transition-colors">→ /contact/</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {# ── Footer micro-mark ───────────────────────────────────────────── #}
+      <div class="mt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-outline-variant pt-6">
+        <p class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest">
+          PHINOX // RULE OF TWO // ALEXANDRIA NODE
+        </p>
+        <p class="font-label-sm text-label-sm text-outline uppercase tracking-widest">
+          © {% now "Y" %} PHINOX. FORGED IN FIRE.
+        </p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // Live-update the timestamp so the telemetry log keeps ticking.
+  (function () {
+    var el = document.getElementById('phx-timestamp');
+    if (!el) return;
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function tick() {
+      var d = new Date();
+      var tz = '';
+      try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop().replace('_', ' '); } catch (e) {}
+      el.textContent =
+        d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' +
+        pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) +
+        (tz ? ' ' + tz : '');
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
+{% endblock %}

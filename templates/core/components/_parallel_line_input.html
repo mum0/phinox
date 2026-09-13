@@ -1,0 +1,20 @@
+{% comment %}
+Parallel-Lines focus effect input, per DESIGN.md "Input Fields" component.
+variant="full"   -> two 1px fire-orange lines, 2px apart (Contact page fidelity)
+variant="simple" -> single fire-orange bottom border (Checkout page fidelity)
+Not wired to real form fields yet — stubbed for Phase 3 use.
+{% endcomment %}
+<div class="relative group">
+  <label class="font-label-xs text-label-xs text-on-surface-variant block mb-2 uppercase">{{ field_label }}</label>
+  {% if field_type == "textarea" %}
+  <textarea class="w-full bg-transparent border-0 border-b border-outline focus:ring-0 focus:border-transparent px-0 py-2 font-technical-sm text-technical-sm placeholder:text-surface-variant resize-none" placeholder="{{ placeholder }}" rows="4" name="{{ field_name }}"></textarea>
+  {% else %}
+  <input class="w-full bg-transparent border-0 border-b border-outline focus:ring-0 focus:border-transparent px-0 py-2 font-technical-sm text-technical-sm placeholder:text-surface-variant" placeholder="{{ placeholder }}" type="{{ field_type|default:'text' }}" name="{{ field_name }}"/>
+  {% endif %}
+  {% if variant == "full" %}
+  <div class="absolute bottom-0 left-0 w-full h-[2px] opacity-0 transition-opacity duration-300 parallel-lines pointer-events-none">
+    <div class="h-[1px] bg-[#E85D04] w-full mb-[2px]"></div>
+    <div class="h-[1px] bg-[#E85D04] w-full"></div>
+  </div>
+  {% endif %}
+</div>

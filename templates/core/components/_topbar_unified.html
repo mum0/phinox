@@ -1,0 +1,168 @@
+{% load static %}
+{% comment %}
+PHINOX — Unified Topbar (Phase: UNIFY-TOPBAR)
+Desktop: logo left, nav center, actions right.
+Mobile: hamburger + logo center, cart+auth right. Drawer slides in.
+Active state: current page link is fire-orange.
+Per دستور §9: zero border-radius, #E85D04 fire orange, #121414 dark surface.
+{% endcomment %}
+
+{# ── Desktop + Mobile Topbar ─────────────────────────────────────────────── #}
+<header class="fixed top-0 w-full z-50 bg-phx-surface-dim/95 backdrop-blur-md border-b border-phx-border" role="banner">
+  <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
+
+    {# ── LEFT: Mobile hamburger + Desktop nav ─────────────────────────────── #}
+    <div class="flex items-center gap-4 sm:gap-6">
+      {# Mobile menu button (hidden on desktop) #}
+      <button id="phx-drawer-toggle" class="lg:hidden min-h-[48px] min-w-[48px] flex items-center justify-center text-phx-text hover:text-phx-fire transition-colors" aria-label="Open navigation menu" aria-expanded="false" aria-controls="phx-drawer">
+        <span class="material-symbols-outlined text-[22px]" aria-hidden="true">menu</span>
+      </button>
+
+      {# Desktop nav links #}
+      <nav class="hidden lg:flex items-center gap-6" aria-label="Primary navigation">
+        <a href="{% url 'catalog:product_list' %}" class="font-mono text-[10px] uppercase tracking-widest text-phx-text-muted hover:text-phx-fire transition-colors py-2 min-h-[48px] flex items-center gap-1.5"
+           {% if request.resolver_match.url_name == 'product_list' and request.resolver_match.app_name == 'catalog' %}style="color: #E85D04;"{% endif %}>
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">storefront</span>
+          SHOP
+        </a>
+        <a href="{% url 'catalog:collection_list' %}" class="font-mono text-[10px] uppercase tracking-widest text-phx-text-muted hover:text-phx-fire transition-colors py-2 min-h-[48px] flex items-center gap-1.5"
+           {% if request.resolver_match.url_name == 'collection_list' and request.resolver_match.app_name == 'catalog' %}style="color: #E85D04;"{% endif %}>
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">category</span>
+          COLLECTIONS
+        </a>
+        <a href="{% url 'pages:about' %}" class="font-mono text-[10px] uppercase tracking-widest text-phx-text-muted hover:text-phx-fire transition-colors py-2 min-h-[48px] flex items-center gap-1.5"
+           {% if request.resolver_match.url_name == 'about' %}style="color: #E85D04;"{% endif %}>
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">info</span>
+          ABOUT
+        </a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'pages:journal' %}" class="font-mono text-[10px] uppercase tracking-widest text-phx-text-muted hover:text-phx-fire transition-colors py-2 min-h-[48px] flex items-center gap-1.5"
+             {% if request.resolver_match.url_name == 'journal' %}style="color: #E85D04;"{% endif %}>
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">article</span>
+            JOURNAL
+          </a>
+          <a href="{% url 'wishlist:list' %}" class="font-mono text-[10px] uppercase tracking-widest text-phx-text-muted hover:text-phx-fire transition-colors py-2 min-h-[48px] flex items-center gap-1.5"
+             {% if request.resolver_match.url_name == 'list' and request.resolver_match.app_name == 'wishlist' %}style="color: #E85D04;"{% endif %}>
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">favorite</span>
+            WISHLIST
+          </a>
+        {% endif %}
+      </nav>
+    </div>
+
+    {# ── CENTER: Logo (absolute on desktop, centered on mobile) ─────────── #}
+    <a href="{% url 'pages:home' %}" class="absolute left-1/2 -translate-x-1/2 font-display text-xl sm:text-2xl font-bold tracking-widest text-phx-text hover:text-phx-fire transition-colors" aria-label="PHINOX home">
+      PHINOX<span class="text-phx-fire">.</span>
+    </a>
+
+    {# ── RIGHT: FAQ + Contact + Cart + Auth ────────────────────────────────── #}
+    <div class="flex items-center gap-2 sm:gap-3">
+      <nav class="hidden md:flex items-center gap-4" aria-label="Support links">
+        <a href="{% url 'pages:faq' %}" class="font-mono text-[10px] uppercase tracking-widest text-phx-text-muted hover:text-phx-fire transition-colors min-h-[48px] flex items-center gap-1"
+           {% if request.resolver_match.url_name == 'faq' %}style="color: #E85D04;"{% endif %}>
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">help_outline</span>
+          <span class="hidden xl:inline">FAQ</span>
+        </a>
+        <a href="{% url 'pages:contact' %}" class="font-mono text-[10px] uppercase tracking-widest text-phx-text-muted hover:text-phx-fire transition-colors min-h-[48px] flex items-center gap-1"
+           {% if request.resolver_match.url_name == 'contact' %}style="color: #E85D04;"{% endif %}>
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">mail</span>
+          <span class="hidden xl:inline">CONTACT</span>
+        </a>
+      </nav>
+
+      {# Cart icon + counter badge #}
+      <a href="{% url 'cart:cart' %}" class="relative min-h-[48px] min-w-[48px] flex items-center justify-center text-phx-text hover:text-phx-fire transition-colors" aria-label="Shopping cart{% if cart_item_count %} ({{ cart_item_count }} items){% endif %}">
+        <span class="material-symbols-outlined text-[22px]" aria-hidden="true">shopping_bag</span>
+        {% if cart_item_count %}
+          <span class="absolute top-1 right-1 bg-phx-fire text-phx-surface-dim font-mono text-[9px] font-bold min-w-[16px] h-[16px] px-1 flex items-center justify-center">{{ cart_item_count }}</span>
+        {% endif %}
+      </a>
+
+      {# Auth: profile (logged in) or login (anonymous) #}
+      {% if user.is_authenticated %}
+        <a href="{% url 'accounts:profile' %}" class="min-h-[48px] min-w-[48px] flex items-center justify-center text-phx-text hover:text-phx-fire transition-colors" aria-label="My profile">
+          <span class="material-symbols-outlined text-[22px]" aria-hidden="true">person</span>
+        </a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="min-h-[48px] min-w-[48px] flex items-center justify-center text-phx-text hover:text-phx-fire transition-colors" aria-label="Sign in">
+          <span class="material-symbols-outlined text-[22px]" aria-hidden="true">login</span>
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+{# ── Mobile Drawer (CSS-only toggle via checkbox hack + <details>) ─────── #}
+{# Per دستور §2: no new deps. Pure CSS + 15 lines of vanilla JS. #}
+<aside id="phx-drawer" class="fixed top-0 left-0 h-full w-80 max-w-[85%] bg-phx-surface-dim border-r border-phx-border z-[100] -translate-x-full transition-transform duration-300 ease-out lg:hidden" role="navigation" aria-label="Mobile navigation" aria-hidden="true">
+  <div class="p-6 flex items-center justify-between border-b border-phx-border">
+    <span class="font-display text-xl font-bold tracking-widest text-phx-text">PHINOX<span class="text-phx-fire">.</span></span>
+    <button id="phx-drawer-close" class="min-h-[48px] min-w-[48px] flex items-center justify-center text-phx-text hover:text-phx-fire transition-colors" aria-label="Close menu">
+      <span class="material-symbols-outlined text-[22px]" aria-hidden="true">close</span>
+    </button>
+  </div>
+  <nav class="p-4 space-y-1" aria-label="Mobile primary links">
+    <a href="{% url 'catalog:product_list' %}" class="block px-4 py-3 font-mono text-xs uppercase tracking-widest text-phx-text hover:bg-phx-surface-mid hover:text-phx-fire transition-colors min-h-[48px] flex items-center gap-3">
+      <span class="material-symbols-outlined text-[20px]" aria-hidden="true">storefront</span> SHOP
+    </a>
+    <a href="{% url 'catalog:collection_list' %}" class="block px-4 py-3 font-mono text-xs uppercase tracking-widest text-phx-text hover:bg-phx-surface-mid hover:text-phx-fire transition-colors min-h-[48px] flex items-center gap-3">
+      <span class="material-symbols-outlined text-[20px]" aria-hidden="true">category</span> COLLECTIONS
+    </a>
+    <a href="{% url 'pages:about' %}" class="block px-4 py-3 font-mono text-xs uppercase tracking-widest text-phx-text hover:bg-phx-surface-mid hover:text-phx-fire transition-colors min-h-[48px] flex items-center gap-3">
+      <span class="material-symbols-outlined text-[20px]" aria-hidden="true">info</span> ABOUT
+    </a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'pages:journal' %}" class="block px-4 py-3 font-mono text-xs uppercase tracking-widest text-phx-text hover:bg-phx-surface-mid hover:text-phx-fire transition-colors min-h-[48px] flex items-center gap-3">
+        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">article</span> JOURNAL
+      </a>
+      <a href="{% url 'wishlist:list' %}" class="block px-4 py-3 font-mono text-xs uppercase tracking-widest text-phx-text hover:bg-phx-surface-mid hover:text-phx-fire transition-colors min-h-[48px] flex items-center gap-3">
+        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">favorite</span> WISHLIST
+      </a>
+      <a href="{% url 'accounts:profile' %}" class="block px-4 py-3 font-mono text-xs uppercase tracking-widest text-phx-text hover:bg-phx-surface-mid hover:text-phx-fire transition-colors min-h-[48px] flex items-center gap-3">
+        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">person</span> PROFILE
+      </a>
+    {% else %}
+      <a href="{% url 'accounts:login' %}" class="block px-4 py-3 font-mono text-xs uppercase tracking-widest text-phx-text hover:bg-phx-surface-mid hover:text-phx-fire transition-colors min-h-[48px] flex items-center gap-3">
+        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">login</span> LOGIN
+      </a>
+    {% endif %}
+    <div class="border-t border-phx-border my-2"></div>
+    <a href="{% url 'pages:faq' %}" class="block px-4 py-3 font-mono text-xs uppercase tracking-widest text-phx-text hover:bg-phx-surface-mid hover:text-phx-fire transition-colors min-h-[48px] flex items-center gap-3">
+      <span class="material-symbols-outlined text-[20px]" aria-hidden="true">help_outline</span> FAQ
+    </a>
+    <a href="{% url 'pages:contact' %}" class="block px-4 py-3 font-mono text-xs uppercase tracking-widest text-phx-text hover:bg-phx-surface-mid hover:text-phx-fire transition-colors min-h-[48px] flex items-center gap-3">
+      <span class="material-symbols-outlined text-[20px]" aria-hidden="true">mail</span> CONTACT
+    </a>
+  </nav>
+</aside>
+<div id="phx-drawer-backdrop" class="fixed inset-0 bg-black/60 z-[99] hidden lg:hidden" aria-hidden="true"></div>
+
+{# Drawer JS — vanilla, < 30 lines. Per دستور §2: no deps. #}
+<script>
+  (function () {
+    var toggle = document.getElementById('phx-drawer-toggle');
+    var closeBtn = document.getElementById('phx-drawer-close');
+    var drawer = document.getElementById('phx-drawer');
+    var backdrop = document.getElementById('phx-drawer-backdrop');
+    if (!toggle || !drawer) return;
+
+    function openDrawer() {
+      drawer.classList.remove('-translate-x-full');
+      drawer.setAttribute('aria-hidden', 'false');
+      toggle.setAttribute('aria-expanded', 'true');
+      backdrop.classList.remove('hidden');
+    }
+    function closeDrawer() {
+      drawer.classList.add('-translate-x-full');
+      drawer.setAttribute('aria-hidden', 'true');
+      toggle.setAttribute('aria-expanded', 'false');
+      backdrop.classList.add('hidden');
+    }
+    toggle.addEventListener('click', openDrawer);
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    if (backdrop) backdrop.addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeDrawer();
+    });
+  })();
+</script>

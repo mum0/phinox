@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 2 helper (Address delete confirmation).
+Used by AddressDeleteView. Per AGENTS.md §6: SET_NULL on Order.shipping_address
+FK means order history survives the deletion (the FK is nullified, not
+the order destroyed).
+{% endcomment %}
+
+{% block title %}PHINOX — Remove Hub{% endblock %}
+
+{% block body_class %}bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container{% endblock %}
+
+{% block body %}
+<header class="border-b border-outline-variant bg-surface-container-lowest sticky top-0 z-50" role="banner">
+  <div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop h-16 flex items-center justify-between">
+    <a href="{% url 'accounts:addresses' %}" class="flex items-center gap-2 font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors" aria-label="Return to addresses">
+      <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_back</span>
+      <span>RETURN // ADDRESSES</span>
+    </a>
+    <a href="{% url 'pages:home' %}" class="font-label-technical text-label-technical tracking-widest text-on-surface uppercase font-bold" aria-label="PHINOX home">PHINOX</a>
+    <span class="font-label-sm text-label-sm text-error uppercase tracking-widest hidden sm:inline">DESTRUCTIVE ACTION</span>
+  </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-margin-mobile md:px-margin-desktop py-12 flex-1">
+  <div class="mb-8">
+    <div class="inline-flex items-center justify-center w-16 h-16 border-2 border-error mb-4" aria-hidden="true">
+      <span class="material-symbols-outlined text-error text-[36px]">warning</span>
+    </div>
+    <div class="flex items-center gap-2 font-label-technical text-label-technical text-error uppercase tracking-widest mb-2">
+      <span class="inline-block w-2 h-2 bg-error" aria-hidden="true"></span>
+      <span>CONFIRM DISPATCH HUB REMOVAL</span>
+    </div>
+    <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight">
+      REMOVE HUB // {{ object.full_name|upper }}
+    </h1>
+    <p class="font-body-md text-body-md text-on-surface-variant mt-3 max-w-md">
+      Removing this dispatch hub is permanent. Existing orders that reference
+      it will retain their snapshot data — the FK is nullified, not the order
+      destroyed. Re-add a new hub to restore the dispatch coordinates.
+    </p>
+  </div>
+
+  <div class="bg-surface-container-low p-gutter shadow-md">
+    <div class="space-y-3 font-body-md text-body-md text-on-surface mb-6">
+      <div>
+        <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">RECIPIENT</p>
+        <p class="font-label-technical text-label-technical mt-1">{{ object.full_name }}</p>
+      </div>
+      <div>
+        <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">ADDRESS</p>
+        <p class="mt-1">{{ object.address }}</p>
+        <p class="text-on-surface-variant mt-1">{{ object.city }}{% if object.postal_code %} · {{ object.postal_code }}{% endif %} · {{ object.country }}</p>
+      </div>
+      <div>
+        <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">PHONE</p>
+        <p class="font-label-technical text-label-technical mt-1">{{ object.phone|default:"—" }}</p>
+      </div>
+      {% if object.is_default %}
+        <p class="bg-primary/20 border border-primary text-primary font-label-technical text-label-technical uppercase tracking-widest p-3 mt-3">
+          NOTE: This is your DEFAULT hub. After removal, the next-saved address will not auto-become default — set one manually.
+        </p>
+      {% endif %}
+    </div>
+
+    <form method="post" class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-outline-variant">
+      {% csrf_token %}
+      <button type="submit"
+              class="bg-error text-on-error font-label-technical text-label-technical uppercase tracking-widest font-bold px-6 py-3.5 hover:opacity-90 transition-opacity min-h-[48px] flex items-center gap-2 justify-center">
+        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">delete_forever</span>
+        PERMANENTLY REMOVE
+      </button>
+      <a href="{% url 'accounts:addresses' %}"
+         class="border border-outline-variant text-on-surface-variant font-label-technical text-label-technical uppercase tracking-widest py-3.5 px-6 hover:border-primary hover:text-primary transition-colors text-center min-h-[48px] flex items-center justify-center">
+        CANCEL
+      </a>
+    </form>
+  </div>
+</main>
+
+<footer class="border-t border-outline-variant bg-surface-container-lowest py-6 px-margin-mobile md:px-margin-desktop text-center" role="contentinfo">
+  <p class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest">
+    © {% now "Y" %} PHINOX // RULE OF TWO
+  </p>
+</footer>
+{% endblock %}

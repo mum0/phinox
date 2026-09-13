@@ -1,0 +1,11 @@
+{% comment %}PHINOX account verification email (BUGFIX-ROUND-2).{% endcomment %}
+<div style="background:#121414;color:#e3e2e2;font-family:'Hanken Grotesk',sans-serif;padding:40px 20px;text-align:center;">
+  <h1 style="font-family:'Archivo Narrow',sans-serif;font-size:32px;color:#e3e2e2;text-transform:uppercase;letter-spacing:0.1em;">PHINOX<span style="color:#E85D04;">.</span></h1>
+  <p style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8e9192;text-transform:uppercase;letter-spacing:0.25em;">OPERATIVE DOSSIER VERIFICATION</p>
+  <p style="margin:24px 0;font-size:16px;">Welcome, <strong>{{ user.username }}</strong>.</p>
+  <p style="margin:16px 0;font-size:14px;color:#c4c7c7;">Click the button below to activate your account:</p>
+  <a href="{{ verify_url }}" style="display:inline-block;background:#E85D04;color:#0a0a0a;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.2em;padding:16px 32px;text-decoration:none;margin:16px 0;">VERIFY DOSSIER →</a>
+  <p style="font-size:11px;color:#8e9192;margin-top:24px;">This link expires in 24 hours.<br>If you did not create this account, ignore this email.</p>
+  <hr style="border:0;border-top:1px solid #343535;margin:24px 0;">
+  <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#8e9192;text-transform:uppercase;">PHINOX // RULE OF TWO // ALEXANDRIA NODE</p>
+</div>

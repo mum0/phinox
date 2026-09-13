@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 1 / Page 4 (Cart).
+Source: stitch_phinox_architectural_luxury_e_commerce/phinox_cart_cart/code.html
+        (desktop variant) — mobile-first merged with the mobile variant.
+
+Context provided by CartView (apps/cart/views.py::CartView):
+  - ``cart``         — the Cart instance (with .items, .business_id)
+  - ``cart_items``   — prefetched list of CartItem (with .variant.product.category)
+  - ``subtotal``     — string e.g. "199.00"
+  - ``item_count``   — int total quantity across all items
+
+Mutations (POST-only, CSRF-protected, HTMX-friendly):
+  - ``{% url 'cart:add_to_cart' %}``
+  - ``{% url 'cart:update_cart_item' %}``  (body: item_id, quantity)
+  - ``{% url 'cart:remove_cart_item' %}``  (body: item_id)
+
+Design system: Stitch brand-* tokens (defined in base.html tailwind config).
+Mobile-first: single-column on mobile, 12-col grid at lg: breakpoint.
+Zero border-radius law preserved (AGENTS.md §0.6).
+{% endcomment %}
+
+{% block title %}PHINOX — Shopping Cart{% endblock %}
+
+{% block extra_head %}
+<style>
+  .technical-grid {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .tech-input {
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    color: #e3e2e2;
+    border-radius: 0;
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+  }
+  .tech-input:focus { border-color: #E85D04; outline: 2px solid #E85D04; outline-offset: 0; }
+</style>
+{% endblock %}
+
+{% block body_class %}bg-brand-bg text-brand-text min-h-screen flex flex-col technical-grid selection:bg-brand-orange selection:text-white{% endblock %}
+
+{% block body %}
+{# ── Top Bar ─────────────────────────────────────────────────────────────── #}
+<header class="w-full border-b border-brand-border bg-brand-bg/95 backdrop-blur sticky top-0 z-50" role="banner">
+  <div class="max-w-7xl mx-auto px-4 md:px-10 h-16 md:h-20 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a class="min-h-[48px] flex items-center justify-center text-brand-muted hover:text-brand-orange transition-colors" href="{% url 'catalog:product_list' %}" title="Continue Shopping" aria-label="Continue shopping">
+        <span class="material-symbols-outlined text-[22px]" aria-hidden="true">arrow_back</span>
+      </a>
+      <span class="hidden md:inline-block font-mono text-xs tracking-widest text-brand-muted">PHX // SYSTEM 04.1</span>
+    </div>
+    <div class="flex items-center justify-center">
+      <a class="flex items-center gap-2" href="{% url 'pages:home' %}" aria-label="PHINOX home">
+        <span class="font-display text-xl md:text-2xl text-brand-text uppercase font-bold tracking-[0.10em]">PHINOX</span>
+      </a>
+    </div>
+    <div class="flex items-center gap-2">
+      <a class="min-h-[48px] flex items-center justify-center text-brand-muted hover:text-brand-text transition-colors" href="#" aria-label="Account" {# TODO: link to {% url 'accounts:login' %} once auth views are wired (Phase 5) #}>
+        <span class="material-symbols-outlined text-[22px]" aria-hidden="true">person</span>
+      </a>
+      <a class="min-h-[48px] relative flex items-center justify-center text-brand-orange" href="{% url 'cart:cart' %}" aria-current="page" aria-label="Cart">
+        <span class="material-symbols-outlined text-[22px]" aria-hidden="true">shopping_bag</span>
+        {% if item_count %}<span class="absolute top-2 right-2 bg-brand-orange text-white font-mono text-[10px] w-4 h-4 flex items-center justify-center font-bold">{{ item_count }}</span>{% endif %}
+      </a>
+    </div>
+  </div>
+</header>
+
+{# ── Main Content ────────────────────────────────────────────────────────── #}
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 md:px-10 py-6 md:py-12">
+
+  {# ── Flow Stepper / Protocol Header ──────────────────────────────────────── #}
+  <div class="mb-8 md:mb-12 border-b border-brand-border pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-brand-orange mb-1">
+        <span class="inline-block w-2 h-2 bg-brand-orange" aria-hidden="true"></span>
+        <span>CHECKOUT PROTOCOL // PHASE 01</span>
+      </div>
+      <h1 class="font-headline font-bold text-3xl md:text-5xl uppercase tracking-tight text-brand-text">
+        SHOPPING CART <span class="text-brand-orange">//</span> READY FOR DISPATCH
+      </h1>
+      {% if cart and cart.items.count %}
+        <p class="font-mono text-xs text-brand-muted mt-2">
+          {{ item_count }} item{{ item_count|pluralize }} // CART_ID: {{ cart.business_id }}
+        </p>
+      {% endif %}
+    </div>
+    {% if cart and cart.items.count %}
+    <a href="{% url 'orders:checkout' %}"
+       class="self-start md:self-auto bg-brand-orange text-black font-mono text-xs uppercase tracking-widest font-bold px-6 py-3.5 hover:bg-[#FF6A1A] transition-colors min-h-[48px] flex items-center gap-2"
+       aria-label="Proceed to checkout">
+      PROCEED // SHIPPING →
+      <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+    </a>
+    {% endif %}
+  </div>
+
+  {% if not cart or not cart.items.count %}
+    {# ── Empty cart state ────────────────────────────────────────────────── #}
+    <div class="border border-brand-border bg-brand-card p-8 sm:p-12 lg:p-16 text-center">
+      <p class="font-display text-2xl sm:text-3xl font-bold text-brand-text mb-3">CART IS EMPTY</p>
+      <p class="font-mono text-xs text-brand-muted mb-8 max-w-md mx-auto">
+        NO ITEMS IN DISPATCH QUEUE. BROWSE THE CATALOG AND ADD A PIECE — IT'LL WAIT RIGHT HERE.
+      </p>
+      <a href="{% url 'catalog:product_list' %}"
+         class="inline-block bg-brand-orange text-black font-mono text-xs uppercase tracking-widest font-bold px-8 py-3.5 hover:bg-[#FF6A1A] transition-colors duration-150 min-h-[48px]"
+         aria-label="Browse products">
+        BROWSE PRODUCTS →
+      </a>
+    </div>
+  {% else %}
+
+  {# ── Cart content: items list + order summary ────────────────────────────── #}
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 lg:gap-10 items-start" aria-live="polite">
+
+    {# ── Cart items ───────────────────────────────────────────────────────── #}
+    <div class="space-y-4">
+      <div class="hidden md:grid grid-cols-[80px_1fr_120px_140px_120px_40px] gap-4 pb-2 border-b border-brand-border font-mono text-[10px] uppercase tracking-widest text-brand-muted" role="row" aria-hidden="true">
+        <span role="columnheader">Image</span>
+        <span role="columnheader">Product</span>
+        <span role="columnheader">Unit Price</span>
+        <span role="columnheader">Quantity</span>
+        <span role="columnheader" class="text-right">Line Total</span>
+        <span role="columnheader" aria-label="Remove"></span>
+      </div>
+
+      <ul class="space-y-3" role="list" data-cart-items>
+        {% for item in cart_items %}
+          <li id="item-{{ item.id }}"
+              class="bg-brand-card border border-brand-border hover:border-brand-orange transition-colors"
+              data-cart-item
+              data-item-id="{{ item.id }}"
+              data-unit-price="{{ item.variant.unit_price|floatformat:2 }}"
+              data-quantity="{{ item.quantity }}"
+              data-currency="{{ item.variant.product.currency }}">
+
+            <div class="grid grid-cols-3 md:grid-cols-[80px_1fr_120px_140px_120px_40px] gap-3 md:gap-4 p-3 md:p-4 items-center">
+
+              {# Image #}
+              <div class="aspect-square bg-brand-surface overflow-hidden col-span-1">
+                <a href="{% url 'catalog:product_detail' slug=item.variant.product.slug %}" aria-label="View {{ item.variant.product.name }}">
+                  {% with first_image=item.variant.product.images.first %}
+                    {% if first_image %}
+                      <img src="{{ first_image.image.url }}"
+                           alt="{{ first_image.alt_text|default:item.variant.product.name }}"
+                           loading="lazy"
+                           class="w-full h-full object-cover">
+                    {% else %}
+                      <img src="{% static 'images/stitch/phinox_cart_cart/00.png' %}"
+                           alt="{{ item.variant.product.name }}"
+                           loading="lazy"
+                           class="w-full h-full object-cover grayscale opacity-60">
+                    {% endif %}
+                  {% endwith %}
+                </a>
+              </div>
+
+              {# Name + SKU #}
+              <div class="col-span-2 md:col-span-1">
+                <p class="font-mono text-[9px] uppercase tracking-widest text-brand-muted mb-1">{{ item.variant.sku }}</p>
+                <a href="{% url 'catalog:product_detail' slug=item.variant.product.slug %}"
+                   class="font-display text-sm md:text-base font-semibold text-brand-text hover:text-brand-orange transition-colors leading-tight block">
+                  {{ item.variant.product.name|upper }}
+                </a>
+                {% if item.variant.name %}
+                  <p class="font-mono text-[10px] text-brand-muted mt-0.5">{{ item.variant.name }}</p>
+                {% endif %}
+              </div>
+
+              {# Unit price #}
+              <div class="col-span-1 md:col-span-1">
+                <span class="md:hidden font-mono text-[9px] uppercase tracking-widest text-brand-muted block">Unit</span>
+                <span class="font-mono text-xs md:text-sm text-brand-text" data-unit-price-display>
+                  {{ item.variant.unit_price|floatformat:2 }}
+                </span>
+                <span class="font-mono text-[9px] text-brand-muted"> {{ item.variant.product.currency }}</span>
+              </div>
+
+              {# Quantity stepper (HTMX) #}
+              <div class="col-span-2 md:col-span-1">
+                <span class="md:hidden font-mono text-[9px] uppercase tracking-widest text-brand-muted block mb-1">Qty</span>
+                <div class="inline-flex items-stretch border border-brand-border" role="group" aria-label="Quantity for {{ item.variant.product.name }}">
+                  {% if item.quantity > 1 %}
+                    <button type="button"
+                            hx-post="{% url 'cart:update_cart_item' %}"
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                            hx-vals='{"item_id": "{{ item.id }}", "quantity": "{{ item.quantity|add:'-1' }}"}'
+                            hx-target="#item-{{ item.id }}"
+                            hx-swap="outerHTML"
+                            class="w-10 h-10 flex items-center justify-center font-mono text-sm text-brand-text hover:bg-brand-orange hover:text-black transition-colors"
+                            aria-label="Decrease quantity">−</button>
+                  {% else %}
+                    <button type="button"
+                            hx-post="{% url 'cart:remove_cart_item' %}"
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                            hx-vals='{"item_id": "{{ item.id }}"}'
+                            hx-target="#item-{{ item.id }}"
+                            hx-swap="outerHTML"
+                            class="w-10 h-10 flex items-center justify-center font-mono text-sm text-brand-muted hover:bg-brand-orange hover:text-black transition-colors"
+                            aria-label="Remove item (quantity is 1)">
+                      <span class="material-symbols-outlined text-[16px]" aria-hidden="true">delete</span>
+                    </button>
+                  {% endif %}
+                  <span class="w-12 h-10 flex items-center justify-center font-mono text-sm text-brand-text border-l border-r border-brand-border bg-brand-surface"
+                        data-quantity-display>{{ item.quantity }}</span>
+                  <button type="button"
+                          hx-post="{% url 'cart:update_cart_item' %}"
+                          hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                          hx-vals='{"item_id": "{{ item.id }}", "quantity": "{{ item.quantity|add:'1' }}"}'
+                          hx-target="#item-{{ item.id }}"
+                          hx-swap="outerHTML"
+                          class="w-10 h-10 flex items-center justify-center font-mono text-sm text-brand-text hover:bg-brand-orange hover:text-black transition-colors"
+                          aria-label="Increase quantity">+</button>
+                </div>
+              </div>
+
+              {# Line total #}
+              <div class="col-span-1 md:col-span-1 md:text-right">
+                <span class="md:hidden font-mono text-[9px] uppercase tracking-widest text-brand-muted block">Total</span>
+                <span class="font-mono text-sm md:text-base text-brand-orange font-bold" data-line-total-display>
+                  {{ item.variant.unit_price|floatformat:2 }}
+                </span>
+                <span class="font-mono text-[9px] text-brand-muted"> {{ item.variant.product.currency }}</span>
+              </div>
+
+              {# Remove (desktop) #}
+              <div class="hidden md:flex col-span-1 justify-end">
+                <button type="button"
+                        hx-post="{% url 'cart:remove_cart_item' %}"
+                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                        hx-vals='{"item_id": "{{ item.id }}"}'
+                        hx-target="#item-{{ item.id }}"
+                        hx-swap="outerHTML"
+                        class="min-h-[40px] min-w-[40px] flex items-center justify-center text-brand-muted hover:text-brand-orange transition-colors"
+                        aria-label="Remove {{ item.variant.product.name }} from cart">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+                </button>
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    {# ── Order Summary ─────────────────────────────────────────────────────── #}
+    <aside class="lg:sticky lg:top-24 border border-brand-border bg-brand-card" aria-labelledby="summary-heading">
+      <div class="px-5 py-4 border-b border-brand-border">
+        <h2 id="summary-heading" class="font-mono text-xs uppercase tracking-widest text-brand-orange font-bold">ORDER MANIFEST</h2>
+      </div>
+      <div class="px-5 py-5 space-y-4">
+        <div class="flex justify-between items-center text-sm">
+          <span class="font-mono text-xs uppercase tracking-wider text-brand-muted">Subtotal</span>
+          <span class="font-mono text-sm text-brand-text" data-cart-subtotal>{{ subtotal }} <span class="text-[10px] text-brand-muted">EGP</span></span>
+        </div>
+        <div class="flex justify-between items-center text-sm">
+          <span class="font-mono text-xs uppercase tracking-wider text-brand-muted">Shipping</span>
+          <span class="font-mono text-xs text-brand-muted">Calculated at next step</span>
+        </div>
+        <div class="flex justify-between items-center text-sm">
+          <span class="font-mono text-xs uppercase tracking-wider text-brand-muted">Tax (VAT)</span>
+          <span class="font-mono text-xs text-brand-muted">Inclusive</span>
+        </div>
+        <div class="h-px bg-brand-border"></div>
+        <div class="flex justify-between items-center">
+          <span class="font-mono text-xs uppercase tracking-widest text-brand-text">Total</span>
+          <span class="font-mono text-lg text-brand-orange font-bold" data-cart-grand-total>{{ subtotal }} <span class="text-[10px] text-brand-muted">EGP</span></span>
+        </div>
+      </div>
+      <div class="px-5 pb-5">
+        <a href="{% url 'orders:checkout' %}"
+           class="block w-full bg-brand-orange text-black font-mono text-xs uppercase tracking-widest font-bold py-4 hover:bg-[#FF6A1A] transition-colors text-center min-h-[48px]">
+          PROCEED TO SHIPPING →
+        </a>
+        <a href="{% url 'catalog:product_list' %}"
+           class="block w-full mt-2 border border-brand-border text-brand-text font-mono text-[11px] uppercase tracking-widest py-3 hover:border-brand-orange hover:text-brand-orange transition-colors text-center">
+          ← CONTINUE SHOPPING
+        </a>
+      </div>
+      <div class="px-5 py-3 border-t border-brand-border bg-brand-surface text-center">
+        <p class="font-mono text-[10px] uppercase tracking-widest text-brand-muted">
+          <span class="material-symbols-outlined text-[12px] align-middle mr-1" aria-hidden="true">lock</span>
+          256-BIT ENCRYPTED CHECKOUT
+        </p>
+      </div>
+    </aside>
+  </div>
+  {% endif %}
+</main>
+
+{# ── Footer ─────────────────────────────────────────────────────────────── #}
+<footer class="border-t border-brand-border bg-brand-bg py-6 px-4 md:px-10 text-center" role="contentinfo">
+  <p class="font-mono text-[10px] uppercase tracking-widest text-brand-muted">
+    &copy; {% now "Y" %} PHINOX // RULE OF TWO // ALEXANDRIA
+  </p>
+</footer>
+{% endblock %}

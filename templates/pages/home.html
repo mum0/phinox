@@ -1,0 +1,344 @@
+{% extends "base_standard.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 1 / Page 1 (Home).
+Source: stitch_phinox_architectural_luxury_e_commerce/phinox_home/code.html
+        (mobile variant) merged with
+        stitch_phinox_architectural_luxury_e_commerce/phinox_home_desktop_pitch_black/code.html
+        (desktop variant) using Tailwind responsive utilities.
+
+Conversions applied:
+  - href="#" → real {% url %} calls where the URL exists
+  - Google CDN images → {% static 'images/stitch/phinox_home/*.png' %}
+  - Stitch uses Material Design 3 surface-* / primary-* / outline-* classes —
+    these are now defined in templates/base.html's tailwind.config block,
+    so they render correctly.
+  - Mobile + desktop merged using Tailwind's `sm:`/`md:`/`lg:` breakpoints.
+  - Zero border-radius law (AGENTS.md §0.6) preserved — Stitch HTML already
+    uses sharp corners throughout; the base.html tailwind config enforces it.
+
+Known deltas vs. Stitch:
+  - Stitch uses `€` currency; we render EGP per AGENTS.md §10.
+  - Stitch uses "€240.00"; our products come from the DB so we iterate
+    over `featured_products` (3 active products) instead of hard-coding
+    three product names. Falls back to a single hero product if fewer
+    than 3 exist.
+  - Stitch's hero "ENTER THE SYSTEM" button uses `text-on-primary` which
+    is dark text on the orange button — matches the brand spec.
+{% endcomment %}
+
+{% block title %}PHINOX — RULE OF TWO{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Hero line-draw animation — ported verbatim from Stitch phinox_home. */
+  @keyframes line-draw {
+    0%   { stroke-dashoffset: 1000; opacity: 0; }
+    20%  { opacity: 1; }
+    80%  { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 1; }
+  }
+  .hero-line {
+    stroke: #F5F5F5;
+    stroke-width: 12;
+    stroke-linecap: round;
+    stroke-dasharray: 1000;
+    animation: line-draw 4s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+  }
+  .hero-line-top    { animation-delay: 0s; }
+  .hero-line-bottom { animation-delay: 0.5s; }
+  .hero-stitch {
+    fill: #E85D04;
+    opacity: 0;
+    animation: hero-fade-in 4s infinite alternate;
+    animation-delay: 3s;
+  }
+  @keyframes hero-fade-in {
+    0%, 70% { opacity: 0; }
+    80%, 100% { opacity: 1; }
+  }
+  /* Reveal-on-scroll — ported from the Stitch script tag at the bottom of the
+     mobile source. Fades sections in as they enter the viewport. */
+  .stitch-section { opacity: 0; transition: opacity 600ms ease; }
+  .stitch-section.is-visible { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    .stitch-section { opacity: 1; }
+    .hero-line, .hero-stitch { animation: none; }
+  }
+</style>
+{% endblock %}
+
+{% block body_class %}bg-black text-on-background font-body-md overflow-x-hidden{% endblock %}
+
+{% block body %}
+{% include "core/components/_topbar_unified.html" %}
+
+<main class="pt-14 sm:pt-16 pb-8">
+  {# ── Hero ─────────────────────────────────────────────────────────────── #}
+  <section class="relative min-h-[85vh] w-full flex flex-col justify-center items-center px-margin-mobile md:px-margin-desktop py-12 overflow-hidden bg-black">
+    <div class="absolute inset-0 z-0" aria-hidden="true">
+      <div class="w-full h-full bg-cover bg-center grayscale contrast-125 opacity-40"
+           style="background-image: url('{% static 'images/stitch/phinox_home/01.jpg' %}');"></div>
+      <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+    </div>
+    <div class="relative z-10 flex flex-col items-center text-center w-full max-w-md md:max-w-xl mx-auto">
+      <div class="w-full flex items-center justify-center my-6 py-4">
+        <svg fill="none" viewBox="0 0 1024 1024" class="w-full max-w-[360px] h-auto" xmlns="http://www.w3.org/2000/svg" aria-label="PHINOX logo animation">
+          <path class="hero-line hero-line-top"    d="M280 490 Q550 490 790 200"></path>
+          <path class="hero-line hero-line-bottom" d="M280 534 Q550 534 790 824"></path>
+          <rect class="hero-stitch" height="84" rx="2" width="12" x="650" y="470"></rect>
+          <text fill="#F5F5F5" font-family="sans-serif" font-size="80" font-weight="900" letter-spacing="10" text-anchor="middle" x="512" y="700">PHINOX</text>
+        </svg>
+      </div>
+      <p class="font-label-technical text-label-technical tracking-widest text-primary mb-4">SYSTEM PROTOCOL 3.5</p>
+      <h2 class="font-display-xl text-[40px] sm:text-[48px] md:text-[56px] leading-none uppercase mb-8">RULE OF TWO</h2>
+      <a href="{% url 'catalog:product_list' %}"
+         class="bg-primary text-on-primary font-label-technical text-label-technical px-8 py-4 uppercase tracking-[0.2em] font-bold active:scale-95 transition-transform min-h-[48px] inline-block">
+        ENTER THE SYSTEM
+      </a>
+    </div>
+  </section>
+
+  {# ── Featured Drop ───────────────────────────────────────────────────── #}
+  <section class="py-16 md:py-24 px-margin-mobile md:px-margin-desktop bg-black stitch-section">
+    <div class="flex justify-between items-end mb-8 border-b border-outline-variant pb-2">
+      <div>
+        <span class="font-label-technical text-label-sm text-outline uppercase">Current Phase</span>
+        <h3 class="font-headline-lg-mobile text-headline-lg-mobile md:text-headline-lg uppercase mt-1">DROP 01: CONVERGENCE</h3>
+      </div>
+      <span class="font-label-technical text-label-technical text-primary">001 / 012</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+      {% if featured_products %}
+        {% for product in featured_products %}
+          <a href="{% url 'catalog:product_detail' slug=product.slug %}"
+             class="relative aspect-[3/4] bg-surface-container-low overflow-hidden group block focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
+             aria-label="View {{ product.name }}">
+            {% with first_image=product.images.first %}
+              {% if first_image %}
+                <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                     src="{{ first_image.image.url }}"
+                     alt="{{ first_image.alt_text|default:product.name }}"
+                     loading="lazy">
+              {% else %}
+                <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 grayscale contrast-125 opacity-60"
+                     src="{% static 'images/stitch/phinox_home/02.jpg' %}"
+                     alt="{{ product.name }}"
+                     loading="lazy">
+              {% endif %}
+            {% endwith %}
+            <div class="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-sm p-4 flex justify-between items-center">
+              <span class="font-label-technical text-label-technical">{{ product.name|upper }}</span>
+              <span class="font-label-technical text-label-technical text-primary">{{ product.base_price|floatformat:2 }} {{ product.currency }}</span>
+            </div>
+          </a>
+        {% endfor %}
+      {% else %}
+        <a href="{% url 'catalog:product_list' %}"
+           class="relative aspect-[3/4] bg-surface-container-low overflow-hidden group block">
+          <img class="w-full h-full object-cover grayscale contrast-125 opacity-60"
+               src="{% static 'images/stitch/phinox_home/02.jpg' %}"
+               alt="Featured drop preview">
+          <div class="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-sm p-4 flex justify-between items-center">
+            <span class="font-label-technical text-label-technical">CONVERGENCE HOODIE</span>
+            <span class="font-label-technical text-label-technical text-primary">2,500.00 EGP</span>
+          </div>
+        </a>
+      {% endif %}
+    </div>
+  </section>
+
+  {# ── Editorial Campaign ───────────────────────────────────────────────── #}
+  <section class="bg-black stitch-section">
+    <div class="flex flex-col md:flex-row">
+      <div class="relative aspect-[9/16] md:aspect-[16/9] md:w-1/2 w-full">
+        <img class="w-full h-full object-cover"
+             src="{% static 'images/stitch/phinox_home/03.jpg' %}"
+             alt="Editorial campaign — model in motion"
+             loading="lazy">
+        <div class="absolute inset-0 bg-black/40" aria-hidden="true"></div>
+        <div class="absolute top-margin-mobile left-margin-mobile md:top-8 md:left-8">
+          <h4 class="font-label-technical text-label-technical bg-primary text-on-primary px-3 py-1">EDITORIAL 01</h4>
+        </div>
+      </div>
+      <div class="px-margin-mobile md:px-margin-desktop py-12 md:w-1/2 flex flex-col gap-6 justify-center">
+        <div class="lock-stitch pl-6 relative">
+          <p class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest mb-2">The Philosophy</p>
+          <p class="font-body-md text-body-md text-on-surface leading-relaxed italic">
+            "Discipline is the bridge between goals and accomplishment. In the Rule of Two, we find the convergence of function and form."
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <div class="h-1 w-12 bg-primary"></div>
+          <div class="h-1 w-4 bg-outline-variant"></div>
+          <div class="h-1 w-4 bg-outline-variant"></div>
+        </div>
+        <a href="{% url 'pages:contact' %}"
+           class="font-label-technical text-label-technical text-primary border-b border-primary inline-block w-max py-1 hover:text-on-primary hover:bg-primary transition-colors">
+          READ THE MANIFESTO →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {# ── Best Sellers / Essentials ────────────────────────────────────────── #}
+  <section class="py-16 md:py-24 bg-black stitch-section">
+    <div class="px-margin-mobile md:px-margin-desktop mb-8 flex items-center gap-4">
+      <h3 class="font-label-technical text-label-technical tracking-[0.3em] uppercase">ESSENTIALS</h3>
+      <div class="flex-grow h-[1px] bg-outline-variant"></div>
+      <a href="{% url 'catalog:product_list' %}" class="font-label-technical text-label-technical text-primary hover:text-on-primary transition-colors">VIEW ALL →</a>
+    </div>
+    <div class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-4 px-margin-mobile md:px-margin-desktop">
+      {% for product in essentials_products %}
+        <a href="{% url 'catalog:product_detail' slug=product.slug %}"
+           class="snap-start flex-shrink-0 w-64 md:w-72 group focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
+           aria-label="View {{ product.name }}">
+          <div class="aspect-square bg-surface-container mb-4 overflow-hidden">
+            {% with first_image=product.images.first %}
+              {% if first_image %}
+                <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                     src="{{ first_image.image.url }}"
+                     alt="{{ first_image.alt_text|default:product.name }}"
+                     loading="lazy">
+              {% else %}
+                <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale opacity-70"
+                     src="{% static 'images/stitch/phinox_home/04.jpg' %}"
+                     alt="{{ product.name }}"
+                     loading="lazy">
+              {% endif %}
+            {% endwith %}
+          </div>
+          <p class="font-label-technical text-label-sm text-outline uppercase">{{ product.category.name }}</p>
+          <p class="font-label-technical text-label-technical mt-1">{{ product.name|upper }}</p>
+          <p class="font-label-technical text-label-sm text-primary mt-1">{{ product.base_price|floatformat:2 }} {{ product.currency }}</p>
+        </a>
+      {% empty %}
+        {# Fallback cards if the catalog is empty (e.g. before seed_products runs) #}
+        <a href="{% url 'catalog:product_list' %}" class="snap-start flex-shrink-0 w-64 md:w-72 group block">
+          <div class="aspect-square bg-surface-container mb-4 overflow-hidden">
+            <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                 src="{% static 'images/stitch/phinox_home/04.jpg' %}"
+                 alt="Essentials preview 1"
+                 loading="lazy">
+          </div>
+          <p class="font-label-technical text-label-sm text-outline uppercase">Accessories</p>
+          <p class="font-label-technical text-label-technical mt-1">LOCK STITCH BELT</p>
+          <p class="font-label-technical text-label-sm text-primary mt-1">850.00 EGP</p>
+        </a>
+        <a href="{% url 'catalog:product_list' %}" class="snap-start flex-shrink-0 w-64 md:w-72 group block">
+          <div class="aspect-square bg-surface-container mb-4 overflow-hidden">
+            <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                 src="{% static 'images/stitch/phinox_home/05.jpg' %}"
+                 alt="Essentials preview 2"
+                 loading="lazy">
+          </div>
+          <p class="font-label-technical text-label-sm text-outline uppercase">Apparel</p>
+          <p class="font-label-technical text-label-technical mt-1">CONVERGENCE TEE</p>
+          <p class="font-label-technical text-label-sm text-primary mt-1">650.00 EGP</p>
+        </a>
+        <a href="{% url 'catalog:product_list' %}" class="snap-start flex-shrink-0 w-64 md:w-72 group block">
+          <div class="aspect-square bg-surface-container mb-4 overflow-hidden">
+            <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                 src="{% static 'images/stitch/phinox_home/06.jpg' %}"
+                 alt="Essentials preview 3"
+                 loading="lazy">
+          </div>
+          <p class="font-label-technical text-label-sm text-outline uppercase">Gear</p>
+          <p class="font-label-technical text-label-technical mt-1">MODULAR PACK 01</p>
+          <p class="font-label-technical text-label-sm text-primary mt-1">3,200.00 EGP</p>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# ── The Archive (Instagram-style grid) ───────────────────────────────── #}
+  <section class="py-16 px-margin-mobile md:px-margin-desktop bg-black stitch-section">
+    <div class="text-center mb-12">
+      <h3 class="font-label-technical text-label-technical tracking-widest text-outline uppercase mb-2">The Archive</h3>
+      <p class="font-headline-lg-mobile text-headline-lg-mobile md:text-headline-lg uppercase">FOLLOW @PHINOX</p>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-unit">
+      <div class="aspect-square bg-surface-container-highest overflow-hidden">
+        <img class="w-full h-full object-cover grayscale opacity-80 hover:opacity-100 transition-opacity"
+             src="{% static 'images/stitch/phinox_home/07.jpg' %}"
+             alt="Industrial stairwell — archive 01"
+             loading="lazy">
+      </div>
+      <div class="aspect-square bg-surface-container-highest overflow-hidden">
+        <img class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity"
+             src="{% static 'images/stitch/phinox_home/08.jpg' %}"
+             alt="Concrete + orange thread detail — archive 02"
+             loading="lazy">
+      </div>
+      <div class="aspect-square bg-surface-container-highest overflow-hidden">
+        <img class="w-full h-full object-cover grayscale opacity-80 hover:opacity-100 transition-opacity"
+             src="{% static 'images/stitch/phinox_home/09.jpg' %}"
+             alt="Models in a hangar — archive 03"
+             loading="lazy">
+      </div>
+      <div class="aspect-square bg-surface-container-highest overflow-hidden">
+        <img class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity"
+             src="{% static 'images/stitch/phinox_home/10.jpg' %}"
+             alt="Digital watch face detail — archive 04"
+             loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  {# ── Footer ──────────────────────────────────────────────────────────── #}
+  <footer class="w-full py-16 md:py-24 px-margin-mobile md:px-margin-desktop bg-black border-t border-outline-variant flex flex-col md:flex-row justify-between items-start gap-gutter" role="contentinfo">
+    <div class="space-y-6">
+      <h2 class="font-display-xl text-[40px] text-on-background uppercase font-black">PHINOX</h2>
+      <p class="font-label-technical text-label-technical text-on-surface-variant max-w-xs">
+        Architectural technical wear. Designed with discipline. Built for the convergence.
+      </p>
+    </div>
+    <div class="grid grid-cols-2 gap-12 mt-12 md:mt-0">
+      <div class="flex flex-col gap-4">
+        <span class="font-label-technical text-label-sm text-primary uppercase">Company</span>
+        <nav class="flex flex-col gap-2" aria-label="Company links">
+          <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors" href="{% url 'pages:contact' %}">CONTACT</a>
+          <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors" href="{% url 'pages:privacy' %}">PRIVACY</a>
+          <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors" href="{% url 'pages:terms' %}">TERMS</a>
+          <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors" href="{% url 'pages:returns' %}">SHIPPING</a>
+        </nav>
+      </div>
+      <div class="flex flex-col gap-4">
+        <span class="font-label-technical text-label-sm text-primary uppercase">Social</span>
+        <nav class="flex flex-col gap-2" aria-label="Social links">
+          <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors opacity-40 cursor-not-allowed pointer-events-none" aria-disabled="true" tabindex="-1" title="Coming soon" href="#">INSTAGRAM</a>
+          <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors opacity-40 cursor-not-allowed pointer-events-none" aria-disabled="true" tabindex="-1" title="Coming soon" href="#">TWITTER</a>
+          <a class="font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors opacity-40 cursor-not-allowed pointer-events-none" aria-disabled="true" tabindex="-1" title="Coming soon" href="#">VIMEO</a>
+        </nav>
+      </div>
+    </div>
+    <div class="mt-16 md:mt-0 w-full flex flex-col gap-4">
+      <div class="h-[1px] w-full bg-outline-variant"></div>
+      <p class="font-label-technical text-label-technical text-on-surface-variant uppercase">© {% now "Y" %} PHINOX. RULE OF TWO.</p>
+    </div>
+  </footer>
+</main>
+
+{% include "core/components/_footer_unified.html" %}
+{% include "core/components/_bottom_nav_dock.html" %}
+
+<script>
+  // Reveal-on-scroll — ported from the Stitch source script.
+  (function () {
+    if (typeof IntersectionObserver === 'undefined') {
+      document.querySelectorAll('.stitch-section').forEach(function (s) { s.classList.add('is-visible'); });
+      return;
+    }
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.stitch-section').forEach(function (s) { observer.observe(s); });
+  })();
+</script>
+{% endblock %}

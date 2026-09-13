@@ -1,0 +1,14 @@
+PHINOX — Operative Dossier Verification
+
+Welcome to PHINOX, {{ user.username }}.
+
+Your operative dossier has been initialized. To activate your account,
+click the verification link below:
+
+{{ verify_url }}
+
+This link expires in 24 hours.
+
+If you did not create this account, you can safely ignore this email.
+
+— PHINOX // RULE OF TWO // Alexandria Node

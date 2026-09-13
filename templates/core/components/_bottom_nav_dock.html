@@ -1,0 +1,35 @@
+{% load static %}
+{% comment %}
+PHINOX — Unified Bottom Nav Dock (mobile only, lg:hidden).
+5-item fixed bottom bar with working {% url %} links.
+Per دستور §9: zero border-radius, fire orange active state.
+{% endcomment %}
+<nav class="fixed bottom-0 left-0 w-full h-16 flex justify-around items-center bg-phx-surface-dim border-t border-phx-border z-50 lg:hidden" aria-label="Mobile bottom navigation">
+  <a href="{% url 'pages:home' %}" class="flex flex-col items-center justify-center min-h-[48px] min-w-[48px] {% if request.resolver_match.url_name == 'home' %}text-phx-fire{% else %}text-phx-text-muted hover:text-phx-fire{% endif %} transition-colors" aria-label="Home">
+    <span class="material-symbols-outlined text-[22px]" aria-hidden="true">home</span>
+    <span class="font-mono text-[8px] uppercase tracking-widest mt-0.5">HOME</span>
+  </a>
+  <a href="{% url 'catalog:product_list' %}" class="flex flex-col items-center justify-center min-h-[48px] min-w-[48px] {% if request.resolver_match.url_name == 'product_list' and request.resolver_match.app_name == 'catalog' %}text-phx-fire{% else %}text-phx-text-muted hover:text-phx-fire{% endif %} transition-colors" aria-label="Shop">
+    <span class="material-symbols-outlined text-[22px]" aria-hidden="true">grid_view</span>
+    <span class="font-mono text-[8px] uppercase tracking-widest mt-0.5">SHOP</span>
+  </a>
+  <a href="{% url 'catalog:search' %}" class="flex flex-col items-center justify-center min-h-[48px] min-w-[48px] {% if request.resolver_match.url_name == 'search' %}text-phx-fire{% else %}text-phx-text-muted hover:text-phx-fire{% endif %} transition-colors" aria-label="Search">
+    <span class="material-symbols-outlined text-[22px]" aria-hidden="true">search</span>
+    <span class="font-mono text-[8px] uppercase tracking-widest mt-0.5">SEARCH</span>
+  </a>
+  <a href="{% url 'wishlist:list' %}" class="flex flex-col items-center justify-center min-h-[48px] min-w-[48px] {% if request.resolver_match.url_name == 'list' and request.resolver_match.app_name == 'wishlist' %}text-phx-fire{% else %}text-phx-text-muted hover:text-phx-fire{% endif %} transition-colors" aria-label="Wishlist">
+    <span class="material-symbols-outlined text-[22px]" aria-hidden="true">favorite</span>
+    <span class="font-mono text-[8px] uppercase tracking-widest mt-0.5">WISHLIST</span>
+  </a>
+  {% if user.is_authenticated %}
+    <a href="{% url 'accounts:profile' %}" class="flex flex-col items-center justify-center min-h-[48px] min-w-[48px] {% if request.resolver_match.url_name == 'profile' %}text-phx-fire{% else %}text-phx-text-muted hover:text-phx-fire{% endif %} transition-colors" aria-label="Account">
+      <span class="material-symbols-outlined text-[22px]" aria-hidden="true">person</span>
+      <span class="font-mono text-[8px] uppercase tracking-widest mt-0.5">ACCOUNT</span>
+    </a>
+  {% else %}
+    <a href="{% url 'accounts:login' %}" class="flex flex-col items-center justify-center min-h-[48px] min-w-[48px] text-phx-text-muted hover:text-phx-fire transition-colors" aria-label="Login">
+      <span class="material-symbols-outlined text-[22px]" aria-hidden="true">login</span>
+      <span class="font-mono text-[8px] uppercase tracking-widest mt-0.5">LOGIN</span>
+    </a>
+  {% endif %}
+</nav>

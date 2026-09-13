@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}PHINOX // 403 ACCESS DENIED{% endblock %}
+
+{% block extra_head %}
+<style>
+  {# Animated fire-orange stitch divider — horizontal lock-stitch homage to PHINOX §0.6 brand law #}
+  @keyframes phx-stitch-march {
+    0%   { background-position: 0 0; }
+    100% { background-position: 24px 0; }
+  }
+  .phx-stitch-divider {
+    height: 6px;
+    width: 100%;
+    background-image: repeating-linear-gradient(
+      90deg,
+      #E85D04 0,
+      #E85D04 8px,
+      transparent 8px,
+      transparent 24px
+    );
+    animation: phx-stitch-march 600ms linear infinite;
+  }
+  @keyframes phx-stitch-blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.45; }
+  }
+  .phx-stitch-divider { animation: phx-stitch-march 600ms linear infinite, phx-stitch-blink 2.2s ease-in-out infinite; }
+
+  {# Scanline — subtle ambient fire-orange sweep (homage to original Stitch 404) #}
+  @keyframes phx-scan {
+    0%   { transform: translateY(-10vh); opacity: 0; }
+    20%  { opacity: 0.6; }
+    80%  { opacity: 0.6; }
+    100% { transform: translateY(110vh); opacity: 0; }
+  }
+  .phx-scanline {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(232, 93, 4, 0.55), transparent);
+    pointer-events: none;
+    animation: phx-scan 9s linear infinite;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section
+  class="relative flex flex-col items-center justify-center min-h-[calc(100vh-3.5rem-6rem)] py-16 sm:py-24 overflow-hidden"
+  aria-labelledby="error-403-heading"
+>
+  <div class="phx-scanline" aria-hidden="true"></div>
+
+  <div class="relative z-10 w-full max-w-xl mx-auto flex flex-col items-center text-center px-4 sm:px-6">
+
+    {# ── Orange lock-stitch micro-mark ── #}
+    <div class="w-1 h-8 bg-phx-fire mb-6 sm:mb-8" aria-hidden="true" style="animation: phx-stitch-blink 2s infinite ease-in-out;"></div>
+
+    {# ── Large error number ── #}
+    <p
+      id="error-403-heading"
+      class="font-display font-bold leading-none text-phx-fire text-[7rem] sm:text-[10rem] lg:text-[12rem] tracking-tight select-none"
+      aria-label="Error 403"
+    >
+      403
+    </p>
+
+    {# ── Technical label ── #}
+    <p class="font-mono text-xs sm:text-sm uppercase tracking-wide-3xl text-phx-text-dim mt-2 sm:mt-4">
+      ACCESS_DENIED
+    </p>
+
+    {# ── Animated stitch divider ── #}
+    <div class="phx-stitch-divider mt-8 sm:mt-10" aria-hidden="true"></div>
+
+    {# ── Message ── #}
+    <p class="font-body text-base sm:text-lg text-phx-text-muted max-w-md mt-8 sm:mt-10 leading-relaxed">
+      You don&rsquo;t have permission to access this page.
+    </p>
+
+    {# ── Primary action ── #}
+    <a
+      href="/"
+      class="group inline-flex items-center justify-center gap-3 w-full sm:w-auto sm:min-w-[16rem] h-14 mt-8 sm:mt-10 bg-phx-fire text-phx-surface-dim font-mono text-xs sm:text-sm uppercase tracking-wide-2xl font-bold hover:bg-phx-fire-dim active:scale-[0.99] transition-all duration-150"
+      aria-label="Back to PHINOX home"
+    >
+      <span aria-hidden="true">&larr;</span>
+      <span>BACK TO HOME</span>
+    </a>
+
+    {# ── Technical data row ── #}
+    <dl
+      class="mt-12 sm:mt-16 w-full border-t border-phx-border pt-4 sm:pt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 text-left"
+      aria-label="Technical request information"
+    >
+      <div class="flex flex-col gap-1">
+        <dt class="font-mono text-[10px] uppercase tracking-wide-3xl text-phx-text-dim">REQUEST_ID</dt>
+        <dd class="font-mono text-xs sm:text-sm text-phx-fire break-all">
+          {{ request_id|default:"—" }}
+        </dd>
+      </div>
+      <div class="flex flex-col gap-1 sm:text-right">
+        <dt class="font-mono text-[10px] uppercase tracking-wide-3xl text-phx-text-dim">TIMESTAMP</dt>
+        <dd class="font-mono text-xs sm:text-sm text-phx-text-muted">
+          <time id="phx-timestamp" datetime="{% now 'c' %}">{% now 'Y-m-d H:i:s T' %}</time>
+        </dd>
+      </div>
+    </dl>
+
+    {# ── Footer micro-mark ── #}
+    <p class="mt-10 sm:mt-14 font-mono text-[10px] uppercase tracking-wide-3xl text-phx-text-dim">
+      PHINOX<span class="text-phx-fire">.</span> &middot; Forged in fire
+    </p>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Live-update the timestamp so the technical data row keeps ticking.
+  (function () {
+    var el = document.getElementById('phx-timestamp');
+    if (!el) return;
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function tick() {
+      var d = new Date();
+      var tz = '';
+      try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop().replace('_', ' '); } catch (e) {}
+      el.textContent =
+        d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' +
+        pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) +
+        (tz ? ' ' + tz : '');
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
+{% endblock %}

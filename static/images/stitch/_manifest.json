@@ -1,0 +1,226 @@
+{
+  "phinox_404_lost_coordinates_desktop": [
+    "static/images/stitch/phinox_404_lost_coordinates_desktop/00.png"
+  ],
+  "phinox_404_lost_coordinates_mobile": [
+    "static/images/stitch/phinox_404_lost_coordinates_mobile/00.png"
+  ],
+  "phinox_advanced_search_search_desktop": [
+    "static/images/stitch/phinox_advanced_search_search_desktop/00.jpg",
+    "static/images/stitch/phinox_advanced_search_search_desktop/01.jpg",
+    "static/images/stitch/phinox_advanced_search_search_desktop/02.jpg",
+    "static/images/stitch/phinox_advanced_search_search_desktop/03.jpg",
+    "static/images/stitch/phinox_advanced_search_search_desktop/04.jpg",
+    "static/images/stitch/phinox_advanced_search_search_desktop/05.jpg",
+    "static/images/stitch/phinox_advanced_search_search_desktop/06.jpg"
+  ],
+  "phinox_advanced_search_search_mobile": [
+    "static/images/stitch/phinox_advanced_search_search_mobile/00.jpg",
+    "static/images/stitch/phinox_advanced_search_search_mobile/01.jpg",
+    "static/images/stitch/phinox_advanced_search_search_mobile/02.jpg",
+    "static/images/stitch/phinox_advanced_search_search_mobile/03.jpg",
+    "static/images/stitch/phinox_advanced_search_search_mobile/04.jpg",
+    "static/images/stitch/phinox_advanced_search_search_mobile/05.jpg",
+    "static/images/stitch/phinox_advanced_search_search_mobile/06.jpg"
+  ],
+  "phinox_authentication_register_auth_desktop": [
+    "static/images/stitch/phinox_authentication_register_auth_desktop/00.jpg",
+    "static/images/stitch/phinox_authentication_register_auth_desktop/01.png"
+  ],
+  "phinox_authentication_register_auth_mobile": [
+    "static/images/stitch/phinox_authentication_register_auth_mobile/00.jpg"
+  ],
+  "phinox_cart_cart": [
+    "static/images/stitch/phinox_cart_cart/00.png"
+  ],
+  "phinox_cart_cart_mobile": [
+    "static/images/stitch/phinox_cart_cart_mobile/00.jpg"
+  ],
+  "phinox_checkout_confirm_checkout_confirm_desktop": [
+    "static/images/stitch/phinox_checkout_confirm_checkout_confirm_desktop/00.jpg"
+  ],
+  "phinox_checkout_confirm_checkout_confirm_mobile": [
+    "static/images/stitch/phinox_checkout_confirm_checkout_confirm_mobile/00.jpg"
+  ],
+  "phinox_checkout_payment_checkout_payment_desktop": [
+    "static/images/stitch/phinox_checkout_payment_checkout_payment_desktop/00.png"
+  ],
+  "phinox_checkout_payment_checkout_payment_mobile": [
+    "static/images/stitch/phinox_checkout_payment_checkout_payment_mobile/00.png"
+  ],
+  "phinox_checkout_shipping_checkout_shipping_desktop": [
+    "static/images/stitch/phinox_checkout_shipping_checkout_shipping_desktop/00.jpg"
+  ],
+  "phinox_checkout_shipping_checkout_shipping_mobile": [
+    "static/images/stitch/phinox_checkout_shipping_checkout_shipping_mobile/00.jpg"
+  ],
+  "phinox_client_profile_order_archive_account_desktop": [
+    "static/images/stitch/phinox_client_profile_order_archive_account_desktop/00.jpg",
+    "static/images/stitch/phinox_client_profile_order_archive_account_desktop/01.jpg",
+    "static/images/stitch/phinox_client_profile_order_archive_account_desktop/02.jpg",
+    "static/images/stitch/phinox_client_profile_order_archive_account_desktop/03.jpg"
+  ],
+  "phinox_client_profile_order_archive_account_mobile": [
+    "static/images/stitch/phinox_client_profile_order_archive_account_mobile/00.jpg",
+    "static/images/stitch/phinox_client_profile_order_archive_account_mobile/01.jpg"
+  ],
+  "phinox_collections_matrix_collections_desktop": [
+    "static/images/stitch/phinox_collections_matrix_collections_desktop/00.jpg",
+    "static/images/stitch/phinox_collections_matrix_collections_desktop/01.jpg",
+    "static/images/stitch/phinox_collections_matrix_collections_desktop/02.jpg",
+    "static/images/stitch/phinox_collections_matrix_collections_desktop/03.jpg",
+    "static/images/stitch/phinox_collections_matrix_collections_desktop/04.jpg"
+  ],
+  "phinox_collections_matrix_collections_mobile": [
+    "static/images/stitch/phinox_collections_matrix_collections_mobile/00.jpg",
+    "static/images/stitch/phinox_collections_matrix_collections_mobile/01.jpg",
+    "static/images/stitch/phinox_collections_matrix_collections_mobile/02.jpg",
+    "static/images/stitch/phinox_collections_matrix_collections_mobile/03.jpg",
+    "static/images/stitch/phinox_collections_matrix_collections_mobile/04.jpg"
+  ],
+  "phinox_core_hoodie_desktop": [
+    "static/images/stitch/phinox_core_hoodie_desktop/00.png",
+    "static/images/stitch/phinox_core_hoodie_desktop/01.jpg",
+    "static/images/stitch/phinox_core_hoodie_desktop/02.jpg",
+    "static/images/stitch/phinox_core_hoodie_desktop/03.jpg",
+    "static/images/stitch/phinox_core_hoodie_desktop/04.png"
+  ],
+  "phinox_core_hoodie_mobile_updated": [
+    "static/images/stitch/phinox_core_hoodie_mobile_updated/00.png",
+    "static/images/stitch/phinox_core_hoodie_mobile_updated/01.jpg",
+    "static/images/stitch/phinox_core_hoodie_mobile_updated/02.jpg",
+    "static/images/stitch/phinox_core_hoodie_mobile_updated/03.jpg"
+  ],
+  "phinox_home": [
+    "static/images/stitch/phinox_home/00.png",
+    "static/images/stitch/phinox_home/01.jpg",
+    "static/images/stitch/phinox_home/02.jpg",
+    "static/images/stitch/phinox_home/03.jpg",
+    "static/images/stitch/phinox_home/04.jpg",
+    "static/images/stitch/phinox_home/05.jpg",
+    "static/images/stitch/phinox_home/06.jpg",
+    "static/images/stitch/phinox_home/07.jpg",
+    "static/images/stitch/phinox_home/08.jpg",
+    "static/images/stitch/phinox_home/09.jpg",
+    "static/images/stitch/phinox_home/10.jpg"
+  ],
+  "phinox_home_desktop_pitch_black": [
+    "static/images/stitch/phinox_home_desktop_pitch_black/00.png",
+    "static/images/stitch/phinox_home_desktop_pitch_black/01.jpg",
+    "static/images/stitch/phinox_home_desktop_pitch_black/02.jpg"
+  ],
+  "phinox_journal_lookbook_editorial_desktop": [
+    "static/images/stitch/phinox_journal_lookbook_editorial_desktop/00.png",
+    "static/images/stitch/phinox_journal_lookbook_editorial_desktop/01.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_desktop/02.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_desktop/03.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_desktop/04.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_desktop/05.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_desktop/06.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_desktop/07.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_desktop/08.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_desktop/09.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_desktop/10.jpg"
+  ],
+  "phinox_journal_lookbook_editorial_mobile": [
+    "static/images/stitch/phinox_journal_lookbook_editorial_mobile/00.png",
+    "static/images/stitch/phinox_journal_lookbook_editorial_mobile/01.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_mobile/02.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_mobile/03.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_mobile/04.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_mobile/05.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_mobile/06.jpg",
+    "static/images/stitch/phinox_journal_lookbook_editorial_mobile/07.jpg"
+  ],
+  "phinox_knowledge_base_faq_faq_desktop": [
+    "static/images/stitch/phinox_knowledge_base_faq_faq_desktop/00.jpg",
+    "static/images/stitch/phinox_knowledge_base_faq_faq_desktop/01.jpg",
+    "static/images/stitch/phinox_knowledge_base_faq_faq_desktop/02.jpg",
+    "static/images/stitch/phinox_knowledge_base_faq_faq_desktop/03.jpg"
+  ],
+  "phinox_knowledge_base_faq_faq_mobile": [
+    "static/images/stitch/phinox_knowledge_base_faq_faq_mobile/00.jpg"
+  ],
+  "phinox_legal_terms_returns_legal_desktop": [
+    "static/images/stitch/phinox_legal_terms_returns_legal_desktop/00.jpg"
+  ],
+  "phinox_legal_terms_returns_legal_mobile": [
+    "static/images/stitch/phinox_legal_terms_returns_legal_mobile/00.jpg",
+    "static/images/stitch/phinox_legal_terms_returns_legal_mobile/01.jpg",
+    "static/images/stitch/phinox_legal_terms_returns_legal_mobile/02.jpg"
+  ],
+  "phinox_live_dispatch_tracking_orders_phx_88291_track_desktop": [
+    "static/images/stitch/phinox_live_dispatch_tracking_orders_phx_88291_track_desktop/00.jpg"
+  ],
+  "phinox_live_dispatch_tracking_orders_phx_88291_track_mobile": [
+    "static/images/stitch/phinox_live_dispatch_tracking_orders_phx_88291_track_mobile/00.jpg"
+  ],
+  "phinox_manifesto_about_about_desktop": [
+    "static/images/stitch/phinox_manifesto_about_about_desktop/00.jpg",
+    "static/images/stitch/phinox_manifesto_about_about_desktop/01.jpg",
+    "static/images/stitch/phinox_manifesto_about_about_desktop/02.jpg",
+    "static/images/stitch/phinox_manifesto_about_about_desktop/03.jpg",
+    "static/images/stitch/phinox_manifesto_about_about_desktop/04.jpg",
+    "static/images/stitch/phinox_manifesto_about_about_desktop/05.jpg",
+    "static/images/stitch/phinox_manifesto_about_about_desktop/06.jpg",
+    "static/images/stitch/phinox_manifesto_about_about_desktop/07.jpg"
+  ],
+  "phinox_manifesto_about_about_mobile": [
+    "static/images/stitch/phinox_manifesto_about_about_mobile/00.jpg",
+    "static/images/stitch/phinox_manifesto_about_about_mobile/01.jpg",
+    "static/images/stitch/phinox_manifesto_about_about_mobile/02.jpg",
+    "static/images/stitch/phinox_manifesto_about_about_mobile/03.jpg"
+  ],
+  "phinox_operative_registration_auth_register_desktop": [
+    "static/images/stitch/phinox_operative_registration_auth_register_desktop/00.jpg"
+  ],
+  "phinox_operative_registration_auth_register_mobile": [
+    "static/images/stitch/phinox_operative_registration_auth_register_mobile/00.jpg"
+  ],
+  "phinox_order_confirmation_orders_phx_88291_confirmation_desktop": [
+    "static/images/stitch/phinox_order_confirmation_orders_phx_88291_confirmation_desktop/00.jpg"
+  ],
+  "phinox_order_confirmation_orders_phx_88291_confirmation_mobile": [
+    "static/images/stitch/phinox_order_confirmation_orders_phx_88291_confirmation_mobile/00.jpg"
+  ],
+  "phinox_password_recovery_cipher_reset_auth_recovery_desktop": [
+    "static/images/stitch/phinox_password_recovery_cipher_reset_auth_recovery_desktop/00.jpg"
+  ],
+  "phinox_password_recovery_cipher_reset_auth_recovery_mobile": [
+    "static/images/stitch/phinox_password_recovery_cipher_reset_auth_recovery_mobile/00.png",
+    "static/images/stitch/phinox_password_recovery_cipher_reset_auth_recovery_mobile/01.jpg"
+  ],
+  "phinox_shop_all_desktop": [
+    "static/images/stitch/phinox_shop_all_desktop/00.png",
+    "static/images/stitch/phinox_shop_all_desktop/01.jpg",
+    "static/images/stitch/phinox_shop_all_desktop/02.jpg",
+    "static/images/stitch/phinox_shop_all_desktop/03.jpg",
+    "static/images/stitch/phinox_shop_all_desktop/04.jpg",
+    "static/images/stitch/phinox_shop_all_desktop/05.jpg",
+    "static/images/stitch/phinox_shop_all_desktop/06.png"
+  ],
+  "phinox_shop_all_mobile_updated": [
+    "static/images/stitch/phinox_shop_all_mobile_updated/00.jpg",
+    "static/images/stitch/phinox_shop_all_mobile_updated/01.png",
+    "static/images/stitch/phinox_shop_all_mobile_updated/02.jpg",
+    "static/images/stitch/phinox_shop_all_mobile_updated/03.jpg",
+    "static/images/stitch/phinox_shop_all_mobile_updated/04.jpg"
+  ],
+  "phinox_wishlist_archive_wishlist_desktop": [
+    "static/images/stitch/phinox_wishlist_archive_wishlist_desktop/00.jpg",
+    "static/images/stitch/phinox_wishlist_archive_wishlist_desktop/01.jpg",
+    "static/images/stitch/phinox_wishlist_archive_wishlist_desktop/02.jpg",
+    "static/images/stitch/phinox_wishlist_archive_wishlist_desktop/03.jpg",
+    "static/images/stitch/phinox_wishlist_archive_wishlist_desktop/04.jpg",
+    "static/images/stitch/phinox_wishlist_archive_wishlist_desktop/05.jpg",
+    "static/images/stitch/phinox_wishlist_archive_wishlist_desktop/06.jpg",
+    "static/images/stitch/phinox_wishlist_archive_wishlist_desktop/07.jpg"
+  ],
+  "phinox_wishlist_vault_wishlist_mobile": [
+    "static/images/stitch/phinox_wishlist_vault_wishlist_mobile/00.jpg",
+    "static/images/stitch/phinox_wishlist_vault_wishlist_mobile/01.jpg",
+    "static/images/stitch/phinox_wishlist_vault_wishlist_mobile/02.jpg",
+    "static/images/stitch/phinox_wishlist_vault_wishlist_mobile/03.jpg",
+    "static/images/stitch/phinox_wishlist_vault_wishlist_mobile/04.jpg"
+  ]
+}

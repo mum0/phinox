@@ -1,0 +1,72 @@
+{% comment %}
+GA4 gtag.js snippet.
+
+Renders ONLY when ``ga4_measurement_id`` is set (via the
+``apps.analytics.context_processors.ga4_settings`` context processor
+backed by ``settings.GA4_MEASUREMENT_ID``).
+
+Include in base.html <head>:
+    {% include "analytics/ga4.html" %}
+
+Also pushes Django ``messages`` into the GA4 dataLayer so client-side
+toasts and server-side flashes both show up in GA4 events.
+{% endcomment %}
+{% if ga4_measurement_id %}
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ ga4_measurement_id }}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  // Initial config — page_view is sent automatically by gtag.js.
+  gtag('config', '{{ ga4_measurement_id }}', {
+    'send_page_view': true,
+    'currency': 'EGP',
+    'country': 'EG'
+  });
+
+  // ── Push Django messages into the dataLayer ──────────────────────────
+  // Each message becomes a `phx_message` event with {level, message}.
+  // Useful for correlating UX flashes with GA4 sessions.
+  window.PHINOX = window.PHINOX || {};
+  window.PHINOX.ga4 = {
+    measurementId: '{{ ga4_measurement_id }}',
+    pushEvent: function (name, params) {
+      try {
+        gtag('event', name, params || {});
+      } catch (e) {
+        // Non-blocking: never let analytics break the page.
+        if (window.console && console.warn) {
+          console.warn('GA4 pushEvent failed:', name, e);
+        }
+      }
+    }
+  };
+
+  {% if messages %}
+  // Serialize Django messages once, then push each as a GA4 event after
+  // the page loads. Kept as a JSON blob to avoid template-escaping issues.
+  window.__PHINOX_GA4_MESSAGES__ = [
+    {% for message in messages %}
+    {
+      "level": "{{ message.tags|default:'info'|escapejs }}",
+      "text": "{{ message|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+  document.addEventListener('DOMContentLoaded', function () {
+    var msgs = window.__PHINOX_GA4_MESSAGES__ || [];
+    for (var i = 0; i < msgs.length; i++) {
+      try {
+        gtag('event', 'phx_message', {
+          'message_level': msgs[i].level,
+          'message_text': msgs[i].text.replace(/<[^>]*>/g, '')
+        });
+      } catch (e) { /* non-blocking */ }
+    }
+  });
+  {% endif %}
+</script>
+{% else %}
+{# GA4 not configured — snippet omitted. Set GA4_MEASUREMENT_ID + GA4_API_SECRET in .env to enable. #}
+{% endif %}

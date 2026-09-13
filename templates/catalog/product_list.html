@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}PHINOX — Products{% endblock %}
+
+{% block content %}
+<section class="space-y-6 sm:space-y-8" aria-labelledby="products-heading">
+
+  {# ── Page header ────────────────────────────────────────────── #}
+  <header class="border-b border-phx-border pb-4 sm:pb-6">
+    <p class="font-mono text-[10px] uppercase tracking-wide-3xl text-phx-fire mb-2">
+      Catalog / 01
+    </p>
+    <h1 id="products-heading" class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-wide-xl text-phx-text">
+      PRODUCTS
+    </h1>
+    <p class="font-mono text-xs text-phx-text-dim mt-2">
+      {% if search_query %}Results for "{{ search_query }}"{% else %}All available inventory{% endif %}
+      {% if is_paginated %} · {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ paginator.count }}{% endif %}
+    </p>
+  </header>
+
+  {# ── Search bar ────────────────────────────────────────────── #}
+  <form method="get" action="/products/"
+        class="flex flex-col sm:flex-row gap-3 sm:gap-4"
+        role="search"
+        aria-label="Product search">
+    <label for="q" class="sr-only">Search products</label>
+    <input type="search"
+           id="q"
+           name="q"
+           value="{{ search_query|default_if_none:'' }}"
+           placeholder="Search products by name or SKU..."
+           class="flex-1 bg-phx-surface-mid border border-phx-border text-phx-text placeholder-phx-text-dim font-mono text-sm px-4 py-3 focus:border-phx-fire transition-colors"
+           aria-describedby="search-help">
+    <p id="search-help" class="sr-only">Press Enter to search. Results load without page reload.</p>
+
+    {# Preserve current category filter when searching #}
+    {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+
+    <button type="submit"
+            class="bg-phx-fire text-phx-surface-dim font-mono text-xs uppercase tracking-wide-3xl font-bold px-6 py-3 hover:bg-phx-fire-dim transition-colors duration-150 min-h-[48px]"
+            aria-label="Submit search">
+      Search
+    </button>
+  </form>
+
+  {# ── Layout: filter sidebar + product grid ────────────────────── #}
+  <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 lg:gap-8">
+
+    {# ── Filter sidebar ──────────────────────────────────────────── #}
+    <aside class="lg:sticky lg:top-20 lg:self-start space-y-6" aria-label="Product filters">
+      <div>
+        <h2 class="font-mono text-[10px] uppercase tracking-wide-3xl text-phx-text-dim mb-3 border-b border-phx-border pb-2">
+          Categories
+        </h2>
+        <nav aria-label="Category filter">
+          <ul class="space-y-1" role="list">
+            <li>
+              <a href="/products/"
+                 hx-get="/products/"
+                 hx-target="#product-grid"
+                 hx-swap="outerHTML"
+                 hx-select="#product-grid"
+                 hx-push-url="true"
+                 class="block font-mono text-xs uppercase tracking-wide-2xl px-3 py-2.5 transition-colors duration-150 hover:text-phx-fire hover:bg-phx-surface-mid {% if not current_category %}text-phx-fire bg-phx-surface-mid border-l-2 border-phx-fire{% else %}text-phx-text-muted border-l-2 border-transparent{% endif %}"
+                 aria-current="{% if not current_category %}page{% endif %}">
+                All
+              </a>
+            </li>
+            {% for category in categories %}
+              <li>
+                <a href="/products/?category={{ category.slug }}"
+                   hx-get="/products/?category={{ category.slug }}"
+                   hx-target="#product-grid"
+                   hx-swap="outerHTML"
+                   hx-select="#product-grid"
+                   hx-push-url="true"
+                   class="block font-mono text-xs uppercase tracking-wide-2xl px-3 py-2.5 transition-colors duration-150 hover:text-phx-fire hover:bg-phx-surface-mid {% if current_category == category.slug %}text-phx-fire bg-phx-surface-mid border-l-2 border-phx-fire{% else %}text-phx-text-muted border-l-2 border-transparent{% endif %}"
+                   aria-current="{% if current_category == category.slug %}page{% endif %}">
+                  {{ category.name }}
+                </a>
+              </li>
+            {% empty %}
+              <li class="font-mono text-[10px] text-phx-text-dim px-3 py-2">No categories</li>
+            {% endfor %}
+          </ul>
+        </nav>
+      </div>
+
+      <div class="hidden lg:block">
+        <p class="font-mono text-[10px] uppercase tracking-wide-3xl text-phx-text-dim border-t border-phx-border pt-4">
+          Filters update instantly
+        </p>
+      </div>
+    </aside>
+
+    {# ── Product grid ────────────────────────────────────────────── #}
+    <div>
+      <div id="product-grid"
+           class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5"
+           aria-live="polite"
+           aria-busy="false">
+        {% for product in products %}
+          <article class="group bg-phx-surface-mid border border-phx-border hover:border-phx-fire transition-colors duration-200 flex flex-col"
+                   data-product-card
+                   data-product-id="{{ product.id }}">
+            {# Image / placeholder #}
+            <a href="/products/{{ product.slug }}/"
+               class="block aspect-square bg-phx-surface-low overflow-hidden relative"
+               aria-label="View {{ product.name }}">
+              {% with first_image=product.images.first %}
+                {% if first_image %}
+                  <img src="{{ first_image.image.url }}"
+                       alt="{{ first_image.alt_text|default:product.name }}"
+                       loading="lazy"
+                       class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                {% else %}
+                  <div class="w-full h-full flex items-center justify-center" aria-hidden="true">
+                    <span class="font-display text-2xl font-bold text-phx-text-dim opacity-30">PHX</span>
+                  </div>
+                {% endif %}
+              {% endwith %}
+            </a>
+
+            {# Card body #}
+            <div class="p-3 sm:p-4 flex flex-col flex-1">
+              <p class="font-mono text-[9px] uppercase tracking-wide-3xl text-phx-text-dim mb-1" aria-label="Business ID">
+                {{ product.business_id }}
+              </p>
+              <h3 class="font-display text-sm sm:text-base font-semibold text-phx-text leading-tight mb-2 line-clamp-2 flex-1">
+                <a href="/products/{{ product.slug }}/" class="hover:text-phx-fire transition-colors">
+                  {{ product.name }}
+                </a>
+              </h3>
+              <div class="flex items-center justify-between mt-2">
+                <p class="font-mono text-sm font-bold text-phx-fire" aria-label="Base price">
+                  {{ product.base_price|floatformat:2 }} <span class="text-[10px] text-phx-text-dim">{{ product.currency }}</span>
+                </p>
+                <a href="/products/{{ product.slug }}/"
+                   class="font-mono text-[10px] uppercase tracking-wide-2xl text-phx-text-muted hover:text-phx-fire transition-colors"
+                   aria-label="View {{ product.name }} details">
+                  View →
+                </a>
+              </div>
+            </div>
+          </article>
+        {% empty %}
+          <div class="col-span-full border border-phx-border bg-phx-surface-mid p-8 sm:p-12 text-center">
+            <p class="font-display text-2xl font-bold text-phx-text mb-2">No products found</p>
+            <p class="font-mono text-xs text-phx-text-dim mb-6">
+              {% if search_query %}No matches for "{{ search_query }}".{% else %}Inventory is empty.{% endif %}
+            </p>
+            <a href="/products/"
+               class="inline-block bg-phx-fire text-phx-surface-dim font-mono text-xs uppercase tracking-wide-3xl font-bold px-6 py-3 hover:bg-phx-fire-dim transition-colors"
+               aria-label="Reset filters and view all products">
+              Reset Filters
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+
+      {# ── Pagination ────────────────────────────────────────────── #}
+      {% if is_paginated %}
+        <nav class="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-phx-border pt-6"
+             aria-label="Pagination navigation">
+          <div class="flex items-center gap-2">
+            {% if page_obj.has_previous %}
+              <a href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                 hx-get="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                 hx-target="#product-grid"
+                 hx-swap="outerHTML"
+                 hx-select="#product-grid"
+                 hx-push-url="true"
+                 class="font-mono text-[10px] uppercase tracking-wide-3xl px-4 py-2.5 border border-phx-border text-phx-text-muted hover:border-phx-fire hover:text-phx-fire transition-colors"
+                 aria-label="Go to previous page, page {{ page_obj.previous_page_number }}">
+                ← Prev
+              </a>
+            {% else %}
+              <span class="font-mono text-[10px] uppercase tracking-wide-3xl px-4 py-2.5 border border-phx-border text-phx-text-dim opacity-40 cursor-not-allowed"
+                    aria-disabled="true" aria-label="No previous page">
+                ← Prev
+              </span>
+            {% endif %}
+
+            {% if page_obj.has_next %}
+              <a href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                 hx-get="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                 hx-target="#product-grid"
+                 hx-swap="outerHTML"
+                 hx-select="#product-grid"
+                 hx-push-url="true"
+                 class="font-mono text-[10px] uppercase tracking-wide-3xl px-4 py-2.5 border border-phx-border text-phx-text-muted hover:border-phx-fire hover:text-phx-fire transition-colors"
+                 aria-label="Go to next page, page {{ page_obj.next_page_number }}">
+                Next →
+              </a>
+            {% else %}
+              <span class="font-mono text-[10px] uppercase tracking-wide-3xl px-4 py-2.5 border border-phx-border text-phx-text-dim opacity-40 cursor-not-allowed"
+                    aria-disabled="true" aria-label="No next page">
+                Next →
+              </span>
+            {% endif %}
+          </div>
+
+          {# Page numbers #}
+          <ol class="flex items-center gap-1 flex-wrap justify-center" role="list">
+            {% for num in page_obj.paginator.page_range %}
+              {% if num == page_obj.number %}
+                <li>
+                  <span aria-current="page"
+                        class="font-mono text-xs font-bold min-w-[36px] px-2 py-2 bg-phx-fire text-phx-surface-dim text-center">
+                    {{ num }}
+                  </span>
+                </li>
+              {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li>
+                  <a href="?page={{ num }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                     hx-get="?page={{ num }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                     hx-target="#product-grid"
+                     hx-swap="outerHTML"
+                     hx-select="#product-grid"
+                     hx-push-url="true"
+                     class="font-mono text-xs min-w-[36px] px-2 py-2 border border-phx-border text-phx-text-muted hover:border-phx-fire hover:text-phx-fire transition-colors text-center"
+                     aria-label="Go to page {{ num }}">
+                    {{ num }}
+                  </a>
+                </li>
+              {% endif %}
+            {% endfor %}
+          </ol>
+
+          <p class="font-mono text-[10px] uppercase tracking-wide-3xl text-phx-text-dim">
+            Page {{ page_obj.number }} / {{ paginator.num_pages }}
+          </p>
+        </nav>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Show loading state during HTMX swaps
+  (function () {
+    var grid = document.getElementById('product-grid');
+    if (!grid) return;
+    document.body.addEventListener('htmx:beforeRequest', function (evt) {
+      if (evt.detail.target && evt.detail.target.id === 'product-grid') {
+        evt.detail.target.setAttribute('aria-busy', 'true');
+      }
+    });
+    document.body.addEventListener('htmx:afterRequest', function (evt) {
+      if (evt.detail.target && evt.detail.target.id === 'product-grid') {
+        evt.detail.target.setAttribute('aria-busy', 'false');
+      }
+    });
+  })();
+</script>
+{% endblock %}

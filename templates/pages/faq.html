@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 3 / Page 1 (FAQ / Knowledge Base).
+Source: stitch_phinox_architectural_luxury_e_commerce/phinox_knowledge_base_faq_faq_desktop/code.html
+
+Phase 3 status: Static editorial page (no DB access, no POST handling).
+View: apps.pages.views.faq — just renders this template.
+
+Content sections:
+  - Hero header: System Knowledge Base
+  - "Need specialized fit guidance?" CTA
+  - 4 FAQ categories (Sizing & Fit, Orders & Shipping, Returns & Refunds, Account & Payment)
+  - Each category: 3-4 Q&A pairs in collapsible accordion-style cards
+{% endcomment %}
+
+{% block title %}PHINOX — Knowledge Base // FAQ{% endblock %}
+
+{% block extra_head %}
+<style>
+  .stitch-section { opacity: 0; transition: opacity 600ms ease; }
+  .stitch-section.is-visible { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .stitch-section { opacity: 1; } }
+  /* Accordion: pure HTML/CSS, no JS. Uses <details>/<summary>. */
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary .faq-icon { transition: transform 200ms ease; }
+  details[open] > summary .faq-icon { transform: rotate(45deg); }
+</style>
+{% endblock %}
+
+{% block body_class %}bg-surface-container-lowest font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container{% endblock %}
+
+{% block body %}
+{# ── Top Bar (Stitch bespoke — consistent with About/Profile pages) ──────── #}
+<header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.6)]" role="banner">
+  <div class="h-16 max-w-[1440px] mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a class="flex items-center gap-3 group" href="{% url 'pages:home' %}" aria-label="PHINOX home">
+        <span class="font-label-technical text-label-technical tracking-widest text-on-surface uppercase font-bold">PHINOX</span>
+      </a>
+      <span class="font-label-technical text-label-technical tracking-widest text-primary hidden xl:inline">[SYS.24]</span>
+    </div>
+    <nav class="hidden md:flex items-center gap-gutter" aria-label="Primary navigation">
+      <a class="font-label-technical text-label-technical uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors" href="{% url 'catalog:product_list' %}">SHOP</a>
+      <a class="font-label-technical text-label-technical uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors" href="{% url 'pages:about' %}">ABOUT</a>
+      <a aria-current="page" class="uppercase tracking-widest transition-colors text-on-surface bg-surface-container-high font-label-technical px-2 py-1" href="{% url 'pages:faq' %}">FAQ</a>
+      <a class="font-label-technical text-label-technical uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors" href="{% url 'pages:contact' %}">CONTACT</a>
+    </nav>
+    <div class="flex items-center gap-gutter">
+      <a class="flex items-center justify-center p-2 text-on-surface hover:text-primary transition-colors min-h-[48px]" href="{% url 'cart:cart' %}" aria-label="Shopping cart">
+        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">shopping_bag</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="w-full pt-16 bg-surface-container-lowest min-h-screen">
+
+  {# ── Hero header ──────────────────────────────────────────────────────── #}
+  <section class="py-16 md:py-24 px-margin-mobile md:px-margin-desktop text-center" aria-labelledby="faq-heading">
+    <div class="max-w-4xl mx-auto space-y-unit">
+      <div class="flex items-center justify-center gap-gutter mb-6">
+        <div class="w-12 h-px bg-primary" aria-hidden="true"></div>
+        <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">SYSTEM KNOWLEDGE BASE</span>
+        <div class="w-12 h-px bg-primary" aria-hidden="true"></div>
+      </div>
+      <h1 id="faq-heading" class="font-display-xl text-[48px] md:text-[64px] leading-none uppercase font-extrabold tracking-tight text-on-surface">
+        KNOWLEDGE BASE
+      </h1>
+      <p class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest mt-6">
+        ARCHITECTURAL SUPPORT // ALEXANDRIA NODE
+      </p>
+      <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto mt-8 leading-relaxed">
+        Need specialized fit guidance, dispatch telemetry, or refund protocols? The PHINOX knowledge base is your operative manual — all answers engineered to the Rule of Two standard.
+      </p>
+      <div class="flex flex-col sm:flex-row justify-center gap-3 mt-10">
+        <a href="#sizing" class="bg-primary text-on-primary font-label-technical text-label-technical px-6 py-3.5 uppercase tracking-widest font-bold hover:opacity-90 transition-opacity min-h-[48px] inline-flex items-center justify-center">
+          BROWSE CATEGORIES
+        </a>
+        <a href="{% url 'pages:contact' %}" class="border border-outline text-on-surface font-label-technical text-label-technical px-6 py-3.5 uppercase tracking-widest hover:border-primary hover:text-primary transition-colors min-h-[48px] inline-flex items-center justify-center">
+          CONTACT DISPATCH
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {# ── Category 1: Sizing & Fit ──────────────────────────────────────────── #}
+  <section id="sizing" class="py-12 px-margin-mobile md:px-margin-desktop bg-surface-container-low stitch-section" aria-labelledby="sizing-heading">
+    <div class="max-w-3xl mx-auto">
+      <div class="flex items-center gap-gutter mb-8">
+        <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+        <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">// CATEGORY 01</span>
+      </div>
+      <h2 id="sizing-heading" class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight mb-10">
+        SIZING &amp; FIT
+      </h2>
+      <div class="space-y-4">
+
+        <details class="border border-outline-variant bg-surface-container-lowest">
+          <summary class="flex items-center justify-between p-5">
+            <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">HOW DO I DETERMINE MY CORRECT SIZE?</span>
+            <span class="material-symbols-outlined text-primary text-[20px] faq-icon" aria-hidden="true">add</span>
+          </summary>
+          <div class="px-5 pb-5 pt-0 border-t border-outline-variant">
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mt-4">
+              Each PHINOX product page includes a technical sizing matrix in the "SPECIFICATIONS" tab. We provide chest span, length, and sleeve measurements in centimeters. For the architectural fit (intended to layer), we recommend selecting your usual size. If between sizes, choose the larger for layering or the smaller for a monolithic fit.
+            </p>
+          </div>
+        </details>
+
+        <details class="border border-outline-variant bg-surface-container-lowest">
+          <summary class="flex items-center justify-between p-5">
+            <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">DOES THE ARCHITECTURAL FIT RUN TRUE TO SIZE?</span>
+            <span class="material-symbols-outlined text-primary text-[20px] faq-icon" aria-hidden="true">add</span>
+          </summary>
+          <div class="px-5 pb-5 pt-0 border-t border-outline-variant">
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mt-4">
+              Yes — our garments are engineered to fit true to standard European sizing, with the architectural allowance of +2-3 cm at the chest and waist for layering. The "Monolithic" fit (e.g. on the Core Hoodie) is +1 size looser; the "Converge" fit (e.g. on the Field Jacket) is true to size.
+            </p>
+          </div>
+        </details>
+
+        <details class="border border-outline-variant bg-surface-container-lowest">
+          <summary class="flex items-center justify-between p-5">
+            <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">CAN I EXCHANGE FOR A DIFFERENT SIZE?</span>
+            <span class="material-symbols-outlined text-primary text-[20px] faq-icon" aria-hidden="true">add</span>
+          </summary>
+          <div class="px-5 pb-5 pt-0 border-t border-outline-variant">
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mt-4">
+              Yes — within the 14-day architectural guarantee, you can exchange for a different size of the same product (subject to availability). Initiate the exchange via <a href="{% url 'pages:returns' %}" class="text-primary underline">the returns page</a>.
+            </p>
+          </div>
+        </details>
+
+      </div>
+    </div>
+  </section>
+
+  {# ── Category 2: Orders & Shipping ────────────────────────────────────── #}
+  <section id="orders" class="py-12 px-margin-mobile md:px-margin-desktop bg-surface-container-lowest stitch-section" aria-labelledby="orders-heading">
+    <div class="max-w-3xl mx-auto">
+      <div class="flex items-center gap-gutter mb-8">
+        <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+        <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">// CATEGORY 02</span>
+      </div>
+      <h2 id="orders-heading" class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight mb-10">
+        ORDERS &amp; SHIPPING
+      </h2>
+      <div class="space-y-4">
+
+        <details class="border border-outline-variant bg-surface-container-low">
+          <summary class="flex items-center justify-between p-5">
+            <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">HOW LONG DOES DELIVERY TAKE?</span>
+            <span class="material-symbols-outlined text-primary text-[20px] faq-icon" aria-hidden="true">add</span>
+          </summary>
+          <div class="px-5 pb-5 pt-0 border-t border-outline-variant">
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mt-4">
+              Standard Ground: 2-4 business days nationwide across all 27 Egyptian governorates. Same-Day Alexandria: dispatched within 6 hours for orders placed before 12:00 CLT, delivered same evening.
+            </p>
+          </div>
+        </details>
+
+        <details class="border border-outline-variant bg-surface-container-low">
+          <summary class="flex items-center justify-between p-5">
+            <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">HOW DO I TRACK MY ORDER?</span>
+            <span class="material-symbols-outlined text-primary text-[20px] faq-icon" aria-hidden="true">add</span>
+          </summary>
+          <div class="px-5 pb-5 pt-0 border-t border-outline-variant">
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mt-4">
+              Visit <a href="{% url 'orders_mgmt:history' %}" class="text-primary underline">your order archive</a>, click "TRACK" on any dispatch, and view the 4-stage timeline (CONFIRMED → PROCESSING → SHIPPED → DELIVERED). For COD orders, the 4-digit dispatch PIN is sent via SMS before doorstep handover.
+            </p>
+          </div>
+        </details>
+
+        <details class="border border-outline-variant bg-surface-container-low">
+          <summary class="flex items-center justify-between p-5">
+            <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">DO YOU SHIP OUTSIDE EGYPT?</span>
+            <span class="material-symbols-outlined text-primary text-[20px] faq-icon" aria-hidden="true">add</span>
+          </summary>
+          <div class="px-5 pb-5 pt-0 border-t border-outline-variant">
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mt-4">
+              Currently no — PHINOX is engineered under direct Alexandria command and dispatched within Egypt only. International dispatch is planned for a future phase. Subscribe via <a href="{% url 'pages:contact' %}" class="text-primary underline">contact</a> to be notified when it becomes available.
+            </p>
+          </div>
+        </details>
+
+      </div>
+    </div>
+  </section>
+
+  {# ── Category 3: Returns & Refunds ──────────────────────────────────────── #}
+  <section id="returns" class="py-12 px-margin-mobile md:px-margin-desktop bg-surface-container-low stitch-section" aria-labelledby="returns-heading">
+    <div class="max-w-3xl mx-auto">
+      <div class="flex items-center gap-gutter mb-8">
+        <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+        <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">// CATEGORY 03</span>
+      </div>
+      <h2 id="returns-heading" class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight mb-10">
+        RETURNS &amp; REFUNDS
+      </h2>
+      <div class="space-y-4">
+
+        <details class="border border-outline-variant bg-surface-container-lowest">
+          <summary class="flex items-center justify-between p-5">
+            <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">WHAT IS THE 14-DAY ARCHITECTURAL GUARANTEE?</span>
+            <span class="material-symbols-outlined text-primary text-[20px] faq-icon" aria-hidden="true">add</span>
+          </summary>
+          <div class="px-5 pb-5 pt-0 border-t border-outline-variant">
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mt-4">
+              Within 14 days of delivery, you may return any item (in original condition, tags attached) for a full refund or exchange. This is the PHINOX architectural guarantee — free return &amp; replacement protocols across all 27 Egyptian governorates. <a href="{% url 'pages:returns' %}" class="text-primary underline">Read the full policy →</a>
+            </p>
+          </div>
+        </details>
+
+        <details class="border border-outline-variant bg-surface-container-lowest">
+          <summary class="flex items-center justify-between p-5">
+            <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">HOW ARE REFUNDS PROCESSED?</span>
+            <span class="material-symbols-outlined text-primary text-[20px] faq-icon" aria-hidden="true">add</span>
+          </summary>
+          <div class="px-5 pb-5 pt-0 border-t border-outline-variant">
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mt-4">
+              Paymob card refunds: credited back to the original card within 5-10 business days. COD refunds: bank transfer to your verified account within 7 business days of return pickup confirmation. valU BNPL: the original installment plan is reversed.
+            </p>
+          </div>
+        </details>
+
+        <details class="border border-outline-variant bg-surface-container-lowest">
+          <summary class="flex items-center justify-between p-5">
+            <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">CAN I RETURN A FINAL-SALE / DROPS ITEM?</span>
+            <span class="material-symbols-outlined text-primary text-[20px] faq-icon" aria-hidden="true">add</span>
+          </summary>
+          <div class="px-5 pb-5 pt-0 border-t border-outline-variant">
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mt-4">
+              Final-sale and limited-drop items (marked "LIMITED DROP" on the PDP) are non-returnable for refund — but can be exchanged for a different size within the 14-day window subject to availability.
+            </p>
+          </div>
+        </details>
+
+      </div>
+    </div>
+  </section>
+
+  {# ── Category 4: Account & Payment ─────────────────────────────────────── #}
+  <section id="payment" class="py-12 px-margin-mobile md:px-margin-desktop bg-surface-container-lowest stitch-section" aria-labelledby="payment-heading">
+    <div class="max-w-3xl mx-auto">
+      <div class="flex items-center gap-gutter mb-8">
+        <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+        <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">// CATEGORY 04</span>
+      </div>
+      <h2 id="payment-heading" class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight mb-10">
+        ACCOUNT &amp; PAYMENT
+      </h2>
+      <div class="space-y-4">
+
+        <details class="border border-outline-variant bg-surface-container-low">
+          <summary class="flex items-center justify-between p-5">
+            <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">WHICH PAYMENT METHODS ARE ACCEPTED?</span>
+            <span class="material-symbols-outlined text-primary text-[20px] faq-icon" aria-hidden="true">add</span>
+          </summary>
+          <div class="px-5 pb-5 pt-0 border-t border-outline-variant">
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mt-4">
+              Four rails per دستور §10: <strong class="text-on-surface">CARD</strong> (Visa/Mastercard/Meeza via Paymob), <strong class="text-on-surface">valU</strong> (BNPL — Buy Now Pay Later), <strong class="text-on-surface">COD</strong> (Cash on Delivery with doorstep PIN verification), and <strong class="text-on-surface">FAWRY</strong> (FawryPay reference-code payments at any Fawry outlet).
+            </p>
+          </div>
+        </details>
+
+        <details class="border border-outline-variant bg-surface-container-low">
+          <summary class="flex items-center justify-between p-5">
+            <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">IS MY PAYMENT INFORMATION SECURE?</span>
+            <span class="material-symbols-outlined text-primary text-[20px] faq-icon" aria-hidden="true">add</span>
+          </summary>
+          <div class="px-5 pb-5 pt-0 border-t border-outline-variant">
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mt-4">
+              Yes — all card payments are PCI-DSS verified and tokenized via Paymob under Central Bank of Egypt standards. We never store raw card numbers; only the last 4 digits and an opaque token are retained for re-charging convenience. 256-GCM SSL encryption is active on every checkout transaction.
+            </p>
+          </div>
+        </details>
+
+        <details class="border border-outline-variant bg-surface-container-low">
+          <summary class="flex items-center justify-between p-5">
+            <span class="font-label-technical text-label-technical text-on-surface uppercase tracking-wider">HOW DO I UPDATE MY ACCOUNT DETAILS?</span>
+            <span class="material-symbols-outlined text-primary text-[20px] faq-icon" aria-hidden="true">add</span>
+          </summary>
+          <div class="px-5 pb-5 pt-0 border-t border-outline-variant">
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mt-4">
+              Visit your <a href="{% url 'accounts:profile' %}" class="text-primary underline">profile archive</a> to view your customer identifier. Address updates happen via <a href="{% url 'accounts:addresses' %}" class="text-primary underline">the addresses page</a>. For name, email, or phone changes, contact dispatch via <a href="{% url 'pages:contact' %}" class="text-primary underline">the contact page</a> until Phase 5 wires self-service editing.
+            </p>
+          </div>
+        </details>
+
+      </div>
+    </div>
+  </section>
+
+  {# ── Closing CTA ────────────────────────────────────────────────────── #}
+  <section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-low text-center stitch-section">
+    <div class="max-w-2xl mx-auto space-y-unit">
+      <p class="font-label-technical text-label-technical text-primary uppercase tracking-widest mb-2">// NEED HUMAN SUPPORT</p>
+      <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface tracking-tight mb-6">
+        STILL HAVE A QUESTION?
+      </h2>
+      <p class="font-body-md text-body-md text-on-surface-variant mb-8">
+        Our dispatch operatives are on standby to answer any architectural inquiry you may have.
+      </p>
+      <a href="{% url 'pages:contact' %}" class="inline-block bg-primary text-on-primary font-label-technical text-label-technical px-8 py-4 uppercase tracking-widest font-bold hover:opacity-90 transition-opacity min-h-[48px]">
+        CONTACT DISPATCH →
+      </a>
+    </div>
+  </section>
+
+  {# ── Footer ────────────────────────────────────────────────────────── #}
+  <footer class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-low border-t border-outline-variant flex flex-col md:flex-row justify-between items-start gap-gutter" role="contentinfo">
+    <div class="space-y-6">
+      <h3 class="font-display-xl text-[40px] text-on-surface uppercase font-black">PHINOX</h3>
+      <p class="font-label-technical text-label-technical text-on-surface-variant max-w-xs">
+        Architectural technical wear. Designed with discipline. Built for the convergence.
+      </p>
+    </div>
+    <div class="mt-16 md:mt-0 w-full flex flex-col gap-4">
+      <div class="h-[1px] w-full bg-outline-variant"></div>
+      <p class="font-label-technical text-label-technical text-on-surface-variant uppercase">© {% now "Y" %} PHINOX. RULE OF TWO.</p>
+    </div>
+  </footer>
+</main>
+
+<script>
+  (function () {
+    if (typeof IntersectionObserver === 'undefined') {
+      document.querySelectorAll('.stitch-section').forEach(function (s) { s.classList.add('is-visible'); });
+      return;
+    }
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.stitch-section').forEach(function (s) { observer.observe(s); });
+  })();
+</script>
+{% endblock %}

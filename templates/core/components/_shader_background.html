@@ -1,0 +1,12 @@
+{% comment %}
+Reusable full-bleed WebGL shader background layer.
+variant = "animation_3" | "animation_24" — loads the matching shader source
+from static/js/shaders/. Not yet wired into any real page (see plan §2.4 /
+§5 Q9 — awaiting confirmation of intended placement). Usage:
+{% include "core/components/_shader_background.html" with variant="animation_3" %}
+{% endcomment %}
+{% load static %}
+<div class="fixed inset-0 w-full h-full pointer-events-none" style="display:block;">
+  <canvas id="shader-canvas-{{ variant }}" style="display:block;width:100%;height:100%"></canvas>
+</div>
+<script src="{% static 'js/shaders/shader_loader.js' %}" data-variant="{{ variant }}" defer></script>

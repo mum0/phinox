@@ -1,0 +1,302 @@
+{% comment %}
+PHINOX order confirmation email — HTML version.
+
+Inline-CSS only (email clients don't load external stylesheets).
+Brand: dark header (#0d0e0f) + fire-orange accent (#E85D04),
+zero border-radius per BRAND LAW (AGENTS.md §0.6).
+
+Context: order, items, user, shipping_address, payment, order_url,
+site_domain, currency.
+{% endcomment %}<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>PHINOX — Order {{ order.business_id }} Confirmed</title>
+  <!--[if mso]>
+  <style type="text/css">body,table,td{font-family:Arial,Helvetica,sans-serif !important;}</style>
+  <![endif]-->
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f4;font-family:'Hanken Grotesk',Arial,Helvetica,sans-serif;color:#121414;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+
+  {# ── Preheader (hidden preview text shown in inbox) ─────────────────── #}
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#f3f4f4;opacity:0;">
+    Order {{ order.business_id }} confirmed. Thank you for shopping with PHINOX — forged in fire.
+    &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+  </div>
+
+  {# ── Outer wrapper (max-width 600px) ─────────────────────────────────── #}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f4;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background-color:#ffffff;border:1px solid #e1e2e2;">
+
+          {# ── Dark header with PHINOX logo + fire-orange accent ─────────── #}
+          <tr>
+            <td style="background-color:#0d0e0f;padding:28px 32px;border-bottom:4px solid #E85D04;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="left" style="font-family:'Archivo Narrow',Arial,Helvetica,sans-serif;font-size:24px;font-weight:700;letter-spacing:0.20em;color:#e3e2e2;">
+                    PHINOX<span style="color:#E85D04;">.</span>
+                  </td>
+                  <td align="right" style="font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:#8e9192;">
+                    Forged in fire
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          {# ── Hero: "THANK YOU." with confirmation banner ─────────────────── #}
+          <tr>
+            <td style="padding:40px 32px 24px 32px;background-color:#ffffff;">
+              <p style="margin:0 0 8px 0;font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:#E85D04;">
+                Order Confirmed · {{ order.business_id }}
+              </p>
+              <h1 style="margin:0 0 16px 0;font-family:'Archivo Narrow',Arial,Helvetica,sans-serif;font-size:36px;font-weight:700;letter-spacing:0.10em;color:#121414;line-height:1.1;">
+                THANK YOU<span style="color:#E85D04;">.</span>
+              </h1>
+              <p style="margin:0;font-family:'Hanken Grotesk',Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#4a4c4c;">
+                Your order has been placed successfully. We've prepared a summary below —
+                you can track its progress any time from your account dashboard.
+              </p>
+            </td>
+          </tr>
+
+          {# ── Status banner ─────────────────────────────────────────────── #}
+          <tr>
+            <td style="padding:0 32px 24px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f7f7f7;border-left:4px solid #E85D04;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <p style="margin:0 0 4px 0;font-family:'Archivo Narrow',Arial,Helvetica,sans-serif;font-size:15px;font-weight:600;color:#121414;">
+                      {% if payment and payment.method_type == "card" and payment.status == "paid" %}
+                        Payment received · Card
+                      {% elif payment and payment.method_type == "card" and payment.status == "failed" %}
+                        Payment failed · Card
+                      {% elif payment and payment.method_type == "card" and payment.status == "pending" %}
+                        Payment pending · Card
+                      {% else %}
+                        Pay on delivery · COD
+                      {% endif %}
+                    </p>
+                    <p style="margin:0;font-family:'JetBrains Mono',Courier,monospace;font-size:11px;color:#6b6e6e;">
+                      {% if payment and payment.method_type == "card" and payment.status == "paid" %}
+                        {{ payment.amount|floatformat:2 }} {{ order.currency|default:"EGP" }} captured
+                        {% if payment.is_test_transaction %}(test mode){% endif %}
+                      {% elif payment and payment.method_type == "card" and payment.status == "failed" %}
+                        {{ payment.failure_reason|default:"Simulated failure (test mode)." }}
+                      {% elif payment and payment.method_type == "card" and payment.status == "pending" %}
+                        Awaiting payment confirmation
+                      {% else %}
+                        {{ order.grand_total|floatformat:2 }} {{ order.currency|default:"EGP" }} due on delivery
+                      {% endif %}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          {# ── Order summary section ─────────────────────────────────────── #}
+          <tr>
+            <td style="padding:0 32px 8px 32px;">
+              <p style="margin:0 0 12px 0;font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:#8e9192;border-bottom:1px solid #e1e2e2;padding-bottom:8px;">
+                Order Summary
+              </p>
+            </td>
+          </tr>
+
+          {# ── Items table header ────────────────────────────────────────── #}
+          <tr>
+            <td style="padding:0 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td colspan="2" style="font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.20em;text-transform:uppercase;color:#8e9192;padding:8px 0;border-bottom:1px solid #e1e2e2;">Item</td>
+                  <td align="center" style="font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.20em;text-transform:uppercase;color:#8e9192;padding:8px 0;border-bottom:1px solid #e1e2e2;width:60px;">Qty</td>
+                  <td align="right" style="font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.20em;text-transform:uppercase;color:#8e9192;padding:8px 0;border-bottom:1px solid #e1e2e2;width:90px;">Price</td>
+                </tr>
+
+                {% for item in items %}
+                <tr>
+                  <td colspan="2" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
+                    <p style="margin:0;font-family:'Hanken Grotesk',Arial,Helvetica,sans-serif;font-size:14px;font-weight:600;color:#121414;">
+                      {{ item.name }}
+                    </p>
+                    <p style="margin:4px 0 0 0;font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#8e9192;">
+                      SKU · {{ item.sku }}
+                    </p>
+                  </td>
+                  <td align="center" style="padding:14px 0;border-bottom:1px solid #f0f0f0;font-family:'JetBrains Mono',Courier,monospace;font-size:13px;color:#4a4c4c;">
+                    {{ item.quantity }}
+                  </td>
+                  <td align="right" style="padding:14px 0;border-bottom:1px solid #f0f0f0;font-family:'JetBrains Mono',Courier,monospace;font-size:13px;color:#121414;font-weight:600;">
+                    {{ item.line_total|floatformat:2 }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
+            </td>
+          </tr>
+
+          {# ── Totals row ────────────────────────────────────────────────── #}
+          <tr>
+            <td style="padding:16px 32px 0 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family:'JetBrains Mono',Courier,monospace;font-size:12px;color:#6b6e6e;padding:4px 0;">Subtotal</td>
+                  <td align="right" style="font-family:'JetBrains Mono',Courier,monospace;font-size:12px;color:#121414;padding:4px 0;">
+                    {{ order.subtotal|floatformat:2 }} {{ currency }}
+                  </td>
+                </tr>
+                {% if order.discount_total > 0 %}
+                <tr>
+                  <td style="font-family:'JetBrains Mono',Courier,monospace;font-size:12px;color:#6b6e6e;padding:4px 0;">Discount</td>
+                  <td align="right" style="font-family:'JetBrains Mono',Courier,monospace;font-size:12px;color:#E85D04;padding:4px 0;">
+                    −{{ order.discount_total|floatformat:2 }} {{ currency }}
+                  </td>
+                </tr>
+                {% endif %}
+                <tr>
+                  <td style="font-family:'JetBrains Mono',Courier,monospace;font-size:12px;color:#6b6e6e;padding:4px 0;">Shipping</td>
+                  <td align="right" style="font-family:'JetBrains Mono',Courier,monospace;font-size:12px;color:#121414;padding:4px 0;">
+                    {{ order.shipping_cost|floatformat:2 }} {{ currency }}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-family:'Archivo Narrow',Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;letter-spacing:0.10em;color:#121414;padding:14px 0 4px 0;border-top:2px solid #121414;">
+                    Grand Total
+                  </td>
+                  <td align="right" style="font-family:'Archivo Narrow',Arial,Helvetica,sans-serif;font-size:20px;font-weight:700;color:#E85D04;padding:14px 0 4px 0;border-top:2px solid #121414;">
+                    {{ order.grand_total|floatformat:2 }} <span style="font-size:11px;color:#8e9192;">{{ currency }}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          {# ── Payment method + shipping address (two-column on wide clients) ── #}
+          <tr>
+            <td style="padding:24px 32px 8px 32px;">
+              <!--[if mso]><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="50%" valign="top"><![endif]-->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="display:inline-block;width:100%;max-width:268px;vertical-align:top;">
+                <tr>
+                  <td style="padding:0 12px 16px 0;">
+                    <p style="margin:0 0 8px 0;font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:#8e9192;border-bottom:1px solid #e1e2e2;padding-bottom:6px;">
+                      Payment
+                    </p>
+                    <p style="margin:0 0 4px 0;font-family:'Hanken Grotesk',Arial,Helvetica,sans-serif;font-size:13px;color:#121414;font-weight:600;">
+                      {% if payment %}
+                        {{ payment.get_method_type_display|default:payment.method_type|upper }}
+                      {% else %}
+                        CASH ON DELIVERY
+                      {% endif %}
+                    </p>
+                    <p style="margin:0;font-family:'JetBrains Mono',Courier,monospace;font-size:10px;color:#6b6e6e;text-transform:uppercase;letter-spacing:0.10em;">
+                      {% if payment %}
+                        {{ payment.get_payment_provider_display|default:payment.payment_provider|upper }}
+                        {% if payment.is_test_transaction %}· TEST{% endif %}
+                      {% else %}
+                        Pay on delivery
+                      {% endif %}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              <!--[if mso]></td><td width="50%" valign="top"><![endif]-->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="display:inline-block;width:100%;max-width:268px;vertical-align:top;">
+                <tr>
+                  <td style="padding:0 0 16px 12px;">
+                    <p style="margin:0 0 8px 0;font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:#8e9192;border-bottom:1px solid #e1e2e2;padding-bottom:6px;">
+                      Shipping Address
+                    </p>
+                    {% if shipping_address %}
+                      <p style="margin:0 0 2px 0;font-family:'Hanken Grotesk',Arial,Helvetica,sans-serif;font-size:13px;color:#121414;font-weight:600;">{{ shipping_address.full_name }}</p>
+                      <p style="margin:0 0 2px 0;font-family:'JetBrains Mono',Courier,monospace;font-size:11px;color:#6b6e6e;">{{ shipping_address.phone }}</p>
+                      <p style="margin:0 0 2px 0;font-family:'Hanken Grotesk',Arial,Helvetica,sans-serif;font-size:13px;color:#4a4c4c;line-height:1.5;">{{ shipping_address.address }}</p>
+                      <p style="margin:0;font-family:'Hanken Grotesk',Arial,Helvetica,sans-serif;font-size:13px;color:#4a4c4c;line-height:1.5;">
+                        {{ shipping_address.city }}{% if shipping_address.postal_code %}, {{ shipping_address.postal_code }}{% endif %}<br>
+                        {{ shipping_address.country }}
+                      </p>
+                    {% else %}
+                      <p style="margin:0;font-family:'JetBrains Mono',Courier,monospace;font-size:11px;color:#8e9192;text-transform:uppercase;letter-spacing:0.10em;">
+                        Address details pending
+                      </p>
+                    {% endif %}
+                  </td>
+                </tr>
+              </table>
+              <!--[if mso]></td></tr></table><![endif]-->
+            </td>
+          </tr>
+
+          {# ── Metadata strip ────────────────────────────────────────────── #}
+          <tr>
+            <td style="padding:8px 32px 24px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f7f7f7;border:1px solid #e1e2e2;">
+                <tr>
+                  <td style="padding:12px 16px;font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#8e9192;width:50%;">
+                    Order ID<br><span style="color:#121414;letter-spacing:0.10em;">{{ order.business_id }}</span>
+                  </td>
+                  <td style="padding:12px 16px;font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#8e9192;width:50%;">
+                    Placed<br><span style="color:#121414;letter-spacing:0.10em;">{% if order.placed_at %}{{ order.placed_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          {# ── CTA: View Order button ────────────────────────────────────── #}
+          <tr>
+            <td align="center" style="padding:8px 32px 32px 32px;">
+              <a href="{{ order_url }}" target="_blank"
+                 style="display:inline-block;background-color:#E85D04;color:#0d0e0f;font-family:'JetBrains Mono',Courier,monospace;font-size:12px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;text-decoration:none;padding:16px 40px;border:2px solid #E85D04;">
+                View Order →
+              </a>
+              <p style="margin:12px 0 0 0;font-family:'JetBrains Mono',Courier,monospace;font-size:10px;color:#8e9192;letter-spacing:0.10em;word-break:break-all;">
+                {{ order_url }}
+              </p>
+            </td>
+          </tr>
+
+          {# ── Footer ─────────────────────────────────────────────────────── #}
+          <tr>
+            <td style="background-color:#0d0e0f;padding:24px 32px;border-top:4px solid #E85D04;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="left" style="font-family:'Archivo Narrow',Arial,Helvetica,sans-serif;font-size:18px;font-weight:700;letter-spacing:0.20em;color:#e3e2e2;">
+                    PHINOX<span style="color:#E85D04;">.</span>
+                  </td>
+                  <td align="right" style="font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:#8e9192;">
+                    EGP · Egypt
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="padding-top:14px;font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#6b6e6e;border-top:1px solid #1a1c1c;margin-top:14px;">
+                    &copy; 2025 PHINOX. All rights reserved.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+
+        {# ── Below-the-card helper text (often clipped by clients — kept short) ── #}
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;">
+          <tr>
+            <td align="center" style="padding:16px 12px;font-family:'JetBrains Mono',Courier,monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#8e9192;">
+              You received this email because you placed an order at PHINOX.
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

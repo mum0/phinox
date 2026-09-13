@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 2 / Page 4 (Order Detail).
+Adapted from the Stitch "Order Confirmation" page (Phase 1) — same layout
+but tailored for revisiting past orders (not just-after-placement confirmation).
+
+Context provided by OrderDetailView (LoginRequiredMixin + DetailView):
+  - ``order``             — Order instance (with items, payments, shipping_address prefetched)
+  - ``order_items``       — all OrderItem rows (snapshots of SKU/name/price)
+  - ``payment``           — most recent Payment (if any)
+  - ``shipping_address``  — order.shipping_address (if attached)
+
+Per AGENTS.md §6: OrderItem snapshots are deliberate — DO NOT normalize
+away the SKU/name/unit_price snapshot fields. They preserve the exact
+item purchased even if the variant/product is later deleted or repriced.
+{% endcomment %}
+
+{% block title %}PHINOX — Order {{ order.business_id }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .tech-grid {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+</style>
+{% endblock %}
+
+{% block body_class %}min-h-screen flex flex-col bg-brand-bg text-brand-text tech-grid selection:bg-brand-orange selection:text-white{% endblock %}
+
+{% block body %}
+{# ── Top Bar ─────────────────────────────────────────────────────────────── #}
+<header class="w-full border-b border-brand-border bg-brand-bg/95 backdrop-blur sticky top-0 z-50" role="banner">
+  <div class="max-w-7xl mx-auto px-4 md:px-10 h-16 md:h-20 flex items-center justify-between">
+    <a href="{% url 'orders_mgmt:history' %}" class="flex items-center gap-3 text-brand-muted hover:text-brand-orange transition-colors duration-200 group h-12 px-2" aria-label="Return to order history">
+      <span class="material-symbols-outlined text-[22px] group-hover:-translate-x-1 transition-transform" aria-hidden="true">arrow_back</span>
+      <span class="font-mono text-xs tracking-widest uppercase hidden sm:inline">RETURN // ORDER HISTORY</span>
+    </a>
+    <a href="{% url 'pages:home' %}" class="flex items-center" aria-label="PHINOX home">
+      <span class="font-display text-xl md:text-2xl text-brand-text uppercase font-bold tracking-[0.10em]">PHINOX</span>
+    </a>
+    <div class="flex items-center gap-3">
+      <div class="hidden md:flex items-center gap-2 border border-brand-border px-3 py-1.5 bg-brand-black">
+        <span class="w-2 h-2 bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+        <span class="font-mono text-[11px] text-brand-muted tracking-wider">ORDER REF: {{ order.business_id }}</span>
+      </div>
+      <a href="{% url 'orders_mgmt:tracking' business_id=order.business_id %}" class="flex items-center gap-1 font-mono text-[11px] text-brand-orange uppercase tracking-widest border border-brand-orange px-3 py-2 hover:bg-brand-orange hover:text-black transition-colors min-h-[36px]">
+        <span class="material-symbols-outlined text-[16px]" aria-hidden="true">my_location</span>
+        TRACK
+      </a>
+    </div>
+  </div>
+</header>
+
+{# ── Main ───────────────────────────────────────────────────────────────── #}
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 md:px-10 py-8 md:py-12">
+
+  {# ── Header ─────────────────────────────────────────────────────────────── #}
+  <section class="mb-10">
+    <div class="flex items-center gap-2 font-mono text-xs text-brand-orange uppercase tracking-wider mb-2">
+      <span>// DISPATCH REF</span>
+      <span>•</span>
+      <span>{{ order.business_id }}</span>
+    </div>
+    <h1 class="font-display text-3xl md:text-4xl font-bold text-brand-text uppercase tracking-tight">
+      ORDER DETAIL <span class="text-brand-orange">//</span> {{ order.business_id }}
+    </h1>
+    <p class="font-mono text-sm text-brand-muted mt-3">
+      Placed {{ order.created_at|date:"jS F Y, H:i" }} · Alexandria Node · Status: <span class="{% if order.status == 'delivered' %}text-emerald-400{% elif order.status == 'cancelled' %}text-brand-orange{% else %}text-brand-text{% endif %} font-bold uppercase">{{ order.status }}</span>
+    </p>
+  </section>
+
+  {# ── Two-column: items + summary ────────────────────────────────────────── #}
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+
+    {# ── LEFT: Items list ─────────────────────────────────────────────────── #}
+    <section class="lg:col-span-8 space-y-6" aria-labelledby="items-heading">
+      <div class="border border-brand-border bg-brand-card">
+        <div class="px-5 py-4 border-b border-brand-border flex items-center justify-between">
+          <h2 id="items-heading" class="font-mono text-xs uppercase tracking-widest text-brand-orange font-bold">// ORDER MANIFEST</h2>
+          <span class="font-mono text-[10px] text-brand-muted">{{ order_items|length }} ITEM{{ order_items|length|pluralize }}</span>
+        </div>
+        <ul class="divide-y divide-brand-border">
+          {% for item in order_items %}
+            <li class="flex items-start gap-4 p-5">
+              <div class="w-16 h-16 bg-brand-surface border border-brand-border overflow-hidden flex-shrink-0">
+                <img src="{% static 'images/stitch/phinox_order_confirmation_orders_phx_88291_confirmation_desktop/00.jpg' %}"
+                     alt="{{ item.name }}"
+                     loading="lazy"
+                     class="w-full h-full object-cover grayscale opacity-70">
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-mono text-[10px] uppercase tracking-widest text-brand-muted">{{ item.sku }}</p>
+                <p class="font-mono text-sm text-brand-text font-semibold">{{ item.name|upper }}</p>
+                <p class="font-mono text-[11px] text-brand-muted mt-1">QTY: {{ item.quantity }} × UNIT {{ item.unit_price|floatformat:2 }} {{ order.currency }}</p>
+              </div>
+              <div class="text-right">
+                <p class="font-mono text-sm text-brand-orange font-bold">{{ item.unit_price|floatformat:2 }}</p>
+                <p class="font-mono text-[9px] text-brand-muted">{{ order.currency }}</p>
+              </div>
+            </li>
+          {% empty %}
+            <li class="p-5 text-center">
+              <p class="font-mono text-xs text-brand-muted uppercase tracking-widest">No items in this order.</p>
+            </li>
+          {% endfor %}
+        </ul>
+        <div class="px-5 py-4 border-t border-brand-border space-y-2 font-mono text-xs">
+          <div class="flex justify-between text-brand-muted">
+            <span>SUBTOTAL</span>
+            <span>{{ order.subtotal|floatformat:2 }} {{ order.currency }}</span>
+          </div>
+          <div class="flex justify-between text-brand-muted">
+            <span>SHIPPING</span>
+            <span>{{ order.shipping_cost|floatformat:2 }} {{ order.currency }}</span>
+          </div>
+          {% if order.discount_total %}
+          <div class="flex justify-between text-brand-muted">
+            <span>DISCOUNT</span>
+            <span>-{{ order.discount_total|floatformat:2 }} {{ order.currency }}</span>
+          </div>
+          {% endif %}
+          <div class="h-px bg-brand-border my-2"></div>
+          <div class="flex justify-between text-brand-text font-bold text-base">
+            <span>TOTAL</span>
+            <span class="text-brand-orange">{{ order.grand_total|floatformat:2 }} <span class="text-[10px] text-brand-muted">{{ order.currency }}</span></span>
+          </div>
+        </div>
+      </div>
+
+      {# ── CTAs ──────────────────────────────────────────────────────────── #}
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <a href="{% url 'orders_mgmt:tracking' business_id=order.business_id %}"
+           class="block w-full bg-brand-orange text-black font-mono text-xs uppercase tracking-widest font-bold py-4 hover:bg-[#FF6A1A] transition-colors text-center min-h-[48px] flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-sm" aria-hidden="true">my_location</span>
+          TRACK DISPATCH →
+        </a>
+        <a href="{% url 'orders_mgmt:history' %}"
+           class="block w-full border border-brand-border text-brand-text font-mono text-xs uppercase tracking-widest py-4 hover:border-brand-orange hover:text-brand-orange transition-colors text-center min-h-[48px] flex items-center justify-center">
+          ALL ORDERS →
+        </a>
+        <a href="{% url 'catalog:product_list' %}"
+           class="block w-full border border-brand-border text-brand-text font-mono text-xs uppercase tracking-widest py-4 hover:border-brand-orange hover:text-brand-orange transition-colors text-center min-h-[48px] flex items-center justify-center">
+          SHOP MORE →
+        </a>
+      </div>
+    </section>
+
+    {# ── RIGHT: Payment + Shipping + Support ───────────────────────────────── #}
+    <aside class="lg:col-span-4 space-y-6" aria-labelledby="dispatch-heading">
+
+      {# ── Payment status ─────────────────────────────────────────────────── #}
+      {% if payment %}
+      <div class="border border-brand-border bg-brand-card p-5">
+        <h3 class="font-mono text-xs uppercase tracking-widest text-brand-orange font-bold mb-3">// PAYMENT STATUS</h3>
+        <div class="grid grid-cols-2 gap-4 font-mono text-xs">
+          <div>
+            <p class="text-brand-muted uppercase tracking-wider">Method</p>
+            <p class="text-brand-text mt-1 uppercase">{{ payment.payment_method|default:payment.payment_provider|upper }}</p>
+          </div>
+          <div>
+            <p class="text-brand-muted uppercase tracking-wider">Status</p>
+            <p class="mt-1 {% if payment.status == 'paid' %}text-emerald-400{% elif payment.status == 'failed' %}text-brand-orange{% else %}text-brand-text{% endif %} uppercase font-bold">
+              {{ payment.status|upper }}
+            </p>
+          </div>
+          <div>
+            <p class="text-brand-muted uppercase tracking-wider">Transaction ID</p>
+            <p class="text-brand-text mt-1 truncate">{{ payment.provider_transaction_id|default:payment.business_id }}</p>
+          </div>
+          <div>
+            <p class="text-brand-muted uppercase tracking-wider">Amount</p>
+            <p class="text-brand-text mt-1">{{ payment.amount|floatformat:2 }} {{ payment.currency }}</p>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="border border-brand-border bg-brand-card p-5">
+        <h3 class="font-mono text-xs uppercase tracking-widest text-brand-orange font-bold mb-3">// PAYMENT STATUS</h3>
+        <p class="font-mono text-xs text-brand-muted leading-relaxed">No payment record found for this order.</p>
+      </div>
+      {% endif %}
+
+      {# ── Shipping address ──────────────────────────────────────────────── #}
+      <div class="border border-brand-border bg-brand-card">
+        <div class="px-5 py-4 border-b border-brand-border">
+          <h3 id="dispatch-heading" class="font-mono text-xs uppercase tracking-widest text-brand-orange font-bold">// DISPATCH CO-ORDINATES</h3>
+        </div>
+        <div class="px-5 py-5 space-y-3 font-mono text-xs">
+          {% if shipping_address %}
+            <div>
+              <p class="text-brand-muted uppercase tracking-wider mb-1">Recipient</p>
+              <p class="text-brand-text">{{ shipping_address.full_name|default:"—" }}</p>
+            </div>
+            <div>
+              <p class="text-brand-muted uppercase tracking-wider mb-1">Street</p>
+              <p class="text-brand-text">{{ shipping_address.address|default:"—" }}</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <p class="text-brand-muted uppercase tracking-wider mb-1">City</p>
+                <p class="text-brand-text">{{ shipping_address.city|default:"—" }}</p>
+              </div>
+              <div>
+                <p class="text-brand-muted uppercase tracking-wider mb-1">Country</p>
+                <p class="text-brand-text">{{ shipping_address.country|default:"—" }}</p>
+              </div>
+            </div>
+            <div>
+              <p class="text-brand-muted uppercase tracking-wider mb-1">Phone (Dispatch PIN)</p>
+              <p class="text-brand-text">{{ shipping_address.phone|default:"—" }}</p>
+            </div>
+          {% else %}
+            <p class="text-brand-muted leading-relaxed">No shipping address attached to this order.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Support links ──────────────────────────────────────────────────── #}
+      <div class="border border-brand-border bg-brand-card p-5">
+        <h3 class="font-mono text-xs uppercase tracking-widest text-brand-orange font-bold mb-3">// SUPPORT</h3>
+        <ul class="space-y-2 font-mono text-xs">
+          <li class="flex items-center gap-2 text-brand-muted">
+            <span class="material-symbols-outlined text-brand-orange text-[16px]" aria-hidden="true">support_agent</span>
+            <a href="{% url 'pages:contact' %}" class="hover:text-brand-orange transition-colors">CONTACT DISPATCH</a>
+          </li>
+          <li class="flex items-center gap-2 text-brand-muted">
+            <span class="material-symbols-outlined text-brand-orange text-[16px]" aria-hidden="true">download</span>
+            <a href="#" class="hover:text-brand-orange transition-colors" {# TODO: invoice PDF URL (Phase 3) #}>DOWNLOAD INVOICE</a>
+          </li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</main>
+
+{# ── Footer ─────────────────────────────────────────────────────────────── #}
+<footer class="border-t border-brand-border bg-brand-bg py-6 px-4 md:px-10 text-center" role="contentinfo">
+  <p class="font-mono text-[10px] uppercase tracking-widest text-brand-muted">
+    © {% now "Y" %} PHINOX // RULE OF TWO // ALEXANDRIA DISPATCH NODE
+  </p>
+</footer>
+{% endblock %}

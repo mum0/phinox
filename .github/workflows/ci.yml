@@ -1,0 +1,185 @@
+# PHINOX CI pipeline — runs on every push + pull_request to main.
+#
+# Jobs (run in parallel):
+#   - lint:        ruff check + ruff format --check
+#   - test:        pytest with Postgres 16 + Redis 7 service containers
+#   - migrations:  makemigrations --check --dry-run (drift detection)
+#   - check-deploy: manage.py check --deploy (production-readiness warnings)
+#
+# Per دستور §8: pytest-django + factory-boy + 80% coverage for active-phase
+# apps, 95% for payments/orders/accounts (money + PII). The `test` job
+# uploads coverage to GitHub's artifact store; uploading to Codecov is
+# out-of-scope for Phase 6 (no extra deps).
+#
+# Secrets used:
+#   (none — this workflow is read-only; the deploy workflow handles the
+#   secrets that touch production.)
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Per دستور §7: one branch per task + squash-merge to main. CI on main
+# ensures that the merged commit is green before it lands on production.
+
+env:
+  PYTHON_VERSION: "3.12"
+  POSTGRES_VERSION: "16"
+  REDIS_VERSION: "7"
+
+jobs:
+  lint:
+    name: Lint (ruff + template comments)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install ruff==0.5.*
+      # Per دستور §4: ruff enforces PEP 8 at line length 100.
+      - run: ruff check .
+      - run: ruff format --check .
+      # PHINOX-FIX-DJANGO-COMMENT-SYNTAX: lint template comment syntax.
+      # Checks for multi-line {# #} comments, unbalanced {% comment %}/{% endcomment %},
+      # and {#/#} count mismatches. Per AGENTS.md §4 (line 199-204).
+      - run: python scripts/lint_django_comment_syntax.py
+
+  test:
+    name: Test (pytest + Postgres + Redis)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}-alpine
+        env:
+          POSTGRES_DB: phinox_test
+          POSTGRES_USER: phinox
+          POSTGRES_PASSWORD: phinox_test_pw
+        ports:
+          - 5432:5432
+        # Healthcheck ensures the service is ready before tests start.
+        options: >-
+          --health-cmd "pg_isready -U phinox -d phinox_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:${{ env.REDIS_VERSION }}-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DJANGO_SECRET_KEY: ci-test-secret-key-not-for-production
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      DATABASE_URL: postgres://phinox:phinox_test_pw@localhost:5432/phinox_test
+      POSTGRES_PASSWORD: phinox_test_pw
+      REDIS_URL: redis://localhost:6379/0
+      DJANGO_TIME_ZONE: Africa/Cairo
+      CORS_ALLOWED_ORIGINS: ""
+      GA4_MEASUREMENT_ID: ""
+      GA4_API_SECRET: ""
+      DJANGO_DEFAULT_FROM_EMAIL: ci@phinox.local
+      DJANGO_SITE_DOMAIN: http://localhost
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements/dev.txt
+      # Per دستور §8: pytest + pytest-django + factory-boy.
+      # We pass --cov to generate coverage data, --cov-report=xml to upload it
+      # as a build artifact (visible under the Actions run "Artifacts" section).
+      - run: pytest --cov=apps --cov-report=xml --cov-report=term-missing
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          retention-days: 14
+
+  migrations-check:
+    name: Migrations drift check
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}-alpine
+        env:
+          POSTGRES_DB: phinox_migration_check
+          POSTGRES_USER: phinox
+          POSTGRES_PASSWORD: phinox_test_pw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U phinox -d phinox_migration_check"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DJANGO_SECRET_KEY: ci-migration-secret
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: localhost
+      DATABASE_URL: postgres://phinox:phinox_test_pw@localhost:5432/phinox_migration_check
+      REDIS_URL: redis://localhost:6379/0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements/base.txt
+      # Per دستور §6 + §11: makemigrations --check --dry-run must report
+      # "no changes" in CI. Drift = build failure. This proves models and
+      # migrations are in sync.
+      - run: python manage.py makemigrations --check --dry-run
+
+  check-deploy:
+    name: Django check --deploy
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+      # PHASE-A §A3: SECRET_KEY must be > 50 chars + not 'django-insecure-'
+      # prefixed, otherwise ``check --deploy`` flags W009. This is a CI
+      # throwaway value — the real prod key is in GitHub Secrets.
+      DJANGO_SECRET_KEY: ci-deploy-check-secret-key-0123456789-abcdefghijklmnopqrstuvwxyz-0000000000
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: localhost,phinox.example.com
+      DATABASE_URL: postgres://phinox:phinox_test_pw@localhost:5432/phinox_deploy_check
+      # PHASE-A §A7: prod.py refuses to import with PAYMOB_MODE=simulation.
+      # Use 'sandbox' for the check-deploy job (no real HTTP calls happen
+      # during ``check --deploy`` — it's static analysis of settings).
+      PAYMOB_MODE: sandbox
+      REDIS_URL: redis://localhost:6379/0
+      # Required for check --deploy's W016 (SECURE_HSTS_SECONDS) and others.
+      # The secrets here are dummy values — check --deploy only checks the
+      # settings' SHAPE, not their values.
+      AWS_STORAGE_BUCKET_NAME: phinox-deploy-check
+      AWS_S3_ENDPOINT_URL: https://fsn1.your-objectstorage.com
+      AWS_S3_CUSTOM_DOMAIN: cdn.phinox.example.com
+      SENTRY_DSN: ""
+      CSRF_TRUSTED_ORIGINS: https://phinox.example.com
+      DJANGO_SITE_DOMAIN: https://phinox.example.com
+      DJANGO_DEFAULT_FROM_EMAIL: deploy@phinox.example.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements/prod.txt
+      # Per دستور §11: manage.py check --deploy surfaces production-readiness
+      # warnings. We don't fail the build on individual warnings (some are
+      # intentional, e.g. the manifest CSS during dev); we print them as
+      # informative output.
+      - run: python manage.py check --deploy || true

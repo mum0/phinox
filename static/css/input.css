@@ -1,0 +1,142 @@
+/* PHINOX Tailwind entry — Phase 6 production build pipeline.
+ *
+ * Compiled via:
+ *   npm run build:css    → produces static/css/dist.css (minified)
+ *   npm run watch:css    → re-compiles on file change (dev)
+ *
+ * The compiled ``dist.css`` is what templates link to in production via
+ * ``<link rel="stylesheet" href="{% static 'css/dist.css' %}">``. In dev
+ * (DEBUG=True), templates still load Tailwind via the CDN ``<script>``
+ * tag for hot-reload iteration speed — see templates/base.html.
+ *
+ * Per دستور §9: zero border-radius is enforced in the tailwind.config.js
+ * (borderRadius: {DEFAULT: '0px', lg: '0px', xl: '0px', full: '9999px'}).
+ * Custom CSS here MUST NOT introduce curves anywhere.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────────────────────────────────────────────────────────────────
+ * PHINOX custom component classes
+ * (registered with @layer so they can be overridden by utilities)
+ * ───────────────────────────────────────────────────────────────────────
+ */
+
+@layer components {
+  /* Tech-input — standard form input styling across Stitch templates.
+   * Matches the .tech-input style defined inline in
+   * templates/accounts/password_reset_*.html + others. Now centralized
+   * so future templates don't duplicate the inline <style> block. */
+  .tech-input {
+    @apply bg-black border border-outline-variant text-on-surface px-3.5 py-2.5
+           font-mono text-sm placeholder:text-outline transition-colors;
+  }
+  .tech-input:focus {
+    @apply border-primary outline-none;
+    outline-offset: 0;
+  }
+
+  /* Stitch lock-stitch accent — vertical fire-orange bar per دستور §9. */
+  .lock-stitch::before {
+    content: '';
+    @apply absolute left-0 top-1/4 h-1/2 w-0.5 bg-primary;
+  }
+  .lock-stitch {
+    @apply relative;
+  }
+
+  /* Orange-stitch micro-mark — 2px × 8px fire-orange inline block. */
+  .orange-stitch {
+    @apply inline-block w-0.5 h-2 bg-primary;
+  }
+
+  /* Hide scrollbars (used by horizontal-scroll carousels on Home + Wishlist). */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+ * PHINOX custom utilities (low-specificity, after Tailwind utilities)
+ * ───────────────────────────────────────────────────────────────────────
+ */
+
+@layer utilities {
+  /* Brand-law focus ring — fire-orange hairline, zero radius (per دستور §9). */
+  *:focus-visible {
+    outline: 2px solid theme('colors.primary');
+    outline-offset: 2px;
+    border-radius: 0 !important;
+  }
+
+  /* HTMX loading state — fades the element while a request is in flight. */
+  [hx-get], [hx-post] {
+    @apply transition-opacity duration-100 ease-out;
+  }
+  .htmx-request {
+    @apply opacity-55;
+  }
+
+  /* Toast animation used by the PHINOX cart/wishlist JavaScript. */
+  @keyframes phx-toast-in {
+    from { transform: translateY(120%); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+  }
+  [data-phx-toast].phx-toast-show {
+    animation: phx-toast-in 220ms ease forwards;
+  }
+
+  /* Reveal-on-scroll — fade in Stitch sections as they enter viewport. */
+  .stitch-section {
+    opacity: 0;
+    transition: opacity 600ms ease;
+  }
+  .stitch-section.is-visible {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .stitch-section {
+      opacity: 1;
+    }
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+ * Stitch page-level overrides (kept here, not inline in templates,
+ * because Tailwind's @apply only works inside @layer blocks compiled
+ * by the production build).
+ * ───────────────────────────────────────────────────────────────────────
+ */
+
+/* Material Symbols Outlined icon font base — used by every Stitch
+ * template. Loaded via Google Fonts CDN link in base.html (Phase 6 keeps
+ * Material Symbols + Google Fonts as CDN per the user spec). */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  line-height: 1;
+}
+
+/* Tech-grid background — subtle 32px square pattern used by Stitch
+ * checkout / payment / order-confirmation / tracking pages. */
+.tech-grid,
+.tactical-grid,
+.technical-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Radar-grid background — Stitch 404 "Lost Coordinates" page. */
+.radar-grid {
+  background-image:
+    radial-gradient(circle, rgba(232, 93, 4, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}

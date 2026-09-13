@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+PHINOX-STITCH-INTEGRATION — Phase 2 / Page 2 (Addresses).
+Source: There's no direct Stitch source for an "Addresses" page — we
+design it inline following the Stitch Material Design 3 brand system
+(same tokens used by the Profile + Order pages).
+
+Phase 2 status: REAL View (AddressListView) + CRUD via AddressCreateView,
+AddressUpdateView, AddressDeleteView, and the POST-only
+address_set_default endpoint.
+
+Context provided by AddressListView:
+  - ``addresses`` — queryset of the user's ShippingAddress, ordered
+    is_default DESC then updated_at DESC. Empty queryset = empty state.
+
+Model: apps.shipping.models.ShippingAddress
+Fields: full_name, phone, address (text), city, country, postal_code,
+is_default. (No "governorate" field — AGENTS.md §10 says 27 governorates
+is a TextChoices enum on accounts, NOT a ShippingAddress field. We
+display country + city instead.)
+{% endcomment %}
+
+{% block title %}PHINOX — Dispatch Coordinates{% endblock %}
+
+{% block body_class %}bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container{% endblock %}
+
+{% block body %}
+{# ── Top Bar (consistent with Profile page) ──────────────────────────────── #}
+<header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.6)]" role="banner">
+  <div class="h-16 max-w-[1440px] mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a class="flex items-center gap-3 group" href="{% url 'pages:home' %}" aria-label="PHINOX home">
+        <span class="font-label-technical text-label-technical tracking-widest text-on-surface uppercase font-bold">PHINOX</span>
+      </a>
+    </div>
+    <nav class="hidden md:flex items-center gap-gutter" aria-label="Account navigation">
+      <a class="font-label-technical text-label-technical uppercase tracking-widest px-unit py-unit text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" href="{% url 'accounts:profile' %}">ACCOUNT</a>
+      <a aria-current="page" class="font-label-technical uppercase tracking-widest px-unit py-unit transition-all text-on-surface bg-surface-container-high" href="{% url 'accounts:addresses' %}">ADDRESSES</a>
+      <a class="font-label-technical text-label-technical uppercase tracking-widest px-unit py-unit text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" href="{% url 'orders_mgmt:history' %}">ORDERS</a>
+    </nav>
+    <div class="flex items-center gap-gutter">
+      <a href="{% url 'accounts:profile' %}" class="flex items-center gap-unit text-on-surface-variant hover:text-primary transition-colors" aria-label="Return to profile">
+        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_back</span>
+        <span class="hidden sm:inline font-label-sm text-label-sm uppercase tracking-wider">PROFILE</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="w-full pt-16 bg-surface min-h-screen">
+  {# ── Page header ────────────────────────────────────────────────────────── #}
+  <div class="w-full bg-surface-container-lowest py-8 shadow-sm">
+    <div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-gutter">
+        <div class="space-y-unit">
+          <div class="flex items-center gap-gutter">
+            <span class="inline-block w-2 h-2 bg-primary" aria-hidden="true"></span>
+            <span class="font-label-technical text-label-technical text-primary tracking-widest uppercase">DISPATCH COORDINATES // SAVED HUBS</span>
+          </div>
+          <p class="font-headline-lg text-headline-lg uppercase text-on-surface tracking-tight">DISPATCH COORDINATES</p>
+          <p class="font-body-md text-body-md text-on-surface-variant mt-2 max-w-xl">
+            Saved delivery hubs for expedited checkout. Set one as default to auto-fill at the shipping step.
+          </p>
+        </div>
+        <a href="{% url 'accounts:address_create' %}"
+           class="self-start md:self-auto bg-primary text-on-primary font-label-technical text-label-technical uppercase tracking-widest font-bold px-6 py-3.5 hover:opacity-90 transition-opacity min-h-[48px] flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">add</span>
+          ADD NEW HUB
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {# ── Address list ─────────────────────────────────────────────────────── #}
+  <div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-12 w-full">
+
+    {% if addresses %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter" role="list">
+
+        {% for addr in addresses %}
+          <article class="bg-surface-container-low p-gutter shadow-md relative overflow-hidden flex flex-col" role="listitem" aria-labelledby="addr-{{ addr.pk }}-name">
+            <div class="absolute top-0 left-0 w-1 h-full {% if addr.is_default %}bg-primary{% else %}bg-outline-variant{% endif %}" aria-hidden="true"></div>
+
+            <header class="flex items-start justify-between mb-4">
+              <div>
+                <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">RECIPIENT</p>
+                <h3 id="addr-{{ addr.pk }}-name" class="font-headline-lg text-[20px] text-on-surface uppercase tracking-tight mt-1">{{ addr.full_name|upper }}</h3>
+              </div>
+              {% if addr.is_default %}
+                <span class="inline-flex items-center gap-1 bg-primary text-on-primary px-2 py-1 font-label-sm text-label-sm uppercase tracking-wider font-bold">
+                  <span class="material-symbols-outlined text-[12px]" aria-hidden="true">check_circle</span>
+                  DEFAULT
+                </span>
+              {% endif %}
+            </header>
+
+            <div class="space-y-3 flex-1 font-body-md text-body-md text-on-surface">
+              <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-primary text-[18px] mt-1" aria-hidden="true">pin_drop</span>
+                <div class="min-w-0">
+                  <p>{{ addr.address }}</p>
+                  <p class="text-on-surface-variant mt-1">{{ addr.city }}{% if addr.postal_code %} · {{ addr.postal_code }}{% endif %}</p>
+                  <p class="text-on-surface-variant">{{ addr.country }}</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 pt-3 border-t border-outline-variant">
+                <span class="material-symbols-outlined text-primary text-[18px] mt-1" aria-hidden="true">phone</span>
+                <div class="min-w-0">
+                  <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">PHONE (DISPATCH PIN)</p>
+                  <p class="font-label-technical text-label-technical mt-1">{{ addr.phone|default:"—" }}</p>
+                </div>
+              </div>
+            </div>
+
+            <footer class="mt-6 pt-4 border-t border-outline-variant flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <a href="{% url 'accounts:address_update' pk=addr.pk %}"
+                   class="flex items-center gap-1 font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors px-2 py-1.5"
+                   aria-label="Edit address {{ addr.full_name }}">
+                  <span class="material-symbols-outlined text-[16px]" aria-hidden="true">edit</span>
+                  EDIT
+                </a>
+                <a href="{% url 'accounts:address_delete' pk=addr.pk %}"
+                   class="flex items-center gap-1 font-label-technical text-label-technical text-on-surface-variant hover:text-primary transition-colors px-2 py-1.5"
+                   aria-label="Delete address {{ addr.full_name }}">
+                  <span class="material-symbols-outlined text-[16px]" aria-hidden="true">delete</span>
+                  DELETE
+                </a>
+              </div>
+              {% if not addr.is_default %}
+                <form method="post" action="{% url 'accounts:address_set_default' pk=addr.pk %}" class="inline">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="font-label-technical text-label-technical text-primary uppercase tracking-widest hover:underline px-2 py-1.5 min-h-[36px]"
+                          aria-label="Set {{ addr.full_name }} as default address">
+                    SET DEFAULT →
+                  </button>
+                </form>
+              {% endif %}
+            </footer>
+          </article>
+        {% endfor %}
+
+      </div>
+    {% else %}
+      {# ── Empty state ────────────────────────────────────────────────────── #}
+      <div class="border border-outline-variant bg-surface-container-low p-gutter sm:p-12 lg:p-16 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 border-2 border-outline-variant mb-4" aria-hidden="true">
+          <span class="material-symbols-outlined text-outline text-[36px]">pin_drop</span>
+        </div>
+        <p class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase text-on-surface mb-3">NO SAVED HUBS</p>
+        <p class="font-body-md text-body-md text-on-surface-variant mb-8 max-w-md mx-auto">
+          You have no saved delivery addresses yet. Add a hub so checkout is one-click next time — it'll auto-fill at the shipping step.
+        </p>
+        <a href="{% url 'accounts:address_create' %}"
+           class="inline-block bg-primary text-on-primary font-label-technical text-label-technical uppercase tracking-widest font-bold px-8 py-3.5 hover:opacity-90 transition-opacity min-h-[48px]"
+           aria-label="Add new address">
+          ADD NEW HUB →
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+</main>
+
+{# ── Footer ───────────────────────────────────────────────────────────── #}
+<footer class="w-full px-margin-mobile md:px-margin-desktop bg-surface-container-lowest border-t border-outline-variant py-6 text-center" role="contentinfo">
+  <p class="font-label-technical text-label-technical text-on-surface-variant uppercase tracking-widest">
+    © {% now "Y" %} PHINOX // RULE OF TWO // ALEXANDRIA
+  </p>
+</footer>
+{% endblock %}
