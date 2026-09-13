@@ -35,7 +35,7 @@ jobs:
     name: Lint (ruff + template comments)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -91,7 +91,7 @@ jobs:
       DJANGO_DEFAULT_FROM_EMAIL: ci@phinox.local
       DJANGO_SITE_DOMAIN: http://localhost
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -133,7 +133,7 @@ jobs:
       DATABASE_URL: postgres://phinox:phinox_test_pw@localhost:5432/phinox_migration_check
       REDIS_URL: redis://localhost:6379/0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -172,7 +172,7 @@ jobs:
       DJANGO_SITE_DOMAIN: https://phinox.example.com
       DJANGO_DEFAULT_FROM_EMAIL: deploy@phinox.example.com
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
